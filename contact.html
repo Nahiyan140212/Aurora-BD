@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact — Aurora Perfume</title>
-  <meta name="description" content="Questions or orders? Contact Aurora — premium perfumes with ৳100 home delivery all over Bangladesh, cash on delivery available.">
+  <title>Contact — AuroraBD Perfume</title>
+  <meta name="description" content="Questions or orders? Contact AuroraBD — premium perfumes with ৳100 home delivery all over Bangladesh, cash on delivery available.">
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,8 +23,8 @@
         <a href="shop.html">Shop</a>
         <a href="about.html">About</a>
       </nav>
-      <a class="brand" href="index.html" aria-label="Aurora home">
-        <span class="brand-name"><span class="spark">✦</span>AURORA<span class="spark">✦</span></span>
+      <a class="brand" href="index.html" aria-label="AuroraBD home">
+        <span class="brand-name"><span class="spark">✦</span>AURORA<span class="bd">BD</span><span class="spark">✦</span></span>
         <span class="brand-tag">A Signature of Confidence</span>
       </a>
       <div class="nav-links right">
@@ -55,9 +55,7 @@
       <div data-reveal>
         <span class="eyebrow">Send a message</span>
         <h2 class="section-title" style="font-size:2rem">We reply <em>fast</em></h2>
-        <form name="contact" method="POST" action="/thanks.html" data-netlify="true" netlify-honeypot="bot-field">
-          <input type="hidden" name="form-name" value="contact">
-          <p hidden><label>Don't fill this out: <input name="bot-field"></label></p>
+        <form id="contactForm">
           <div class="form-field">
             <label for="c-name">Your Name *</label>
             <input id="c-name" name="name" required autocomplete="name">
@@ -74,7 +72,8 @@
             <label for="c-msg">Message *</label>
             <textarea id="c-msg" name="message" required placeholder="Tell us which fragrance you're interested in…"></textarea>
           </div>
-          <button class="btn btn-gold" type="submit">Send Message ✦</button>
+          <button class="btn btn-gold" type="submit">Send via WhatsApp ✦</button>
+          <p class="form-hint">Your message opens in WhatsApp — just press send.</p>
         </form>
       </div>
 
@@ -105,8 +104,8 @@
           <p>Yes! Order online and pay in cash when your fragrance reaches your hand. We'll call to confirm every order first.</p>
         </details>
         <details>
-          <summary>How long do Aurora fragrances last?</summary>
-          <p>Aurora fragrances are made with premium-grade, long-lasting formulations. Performance varies by scent and skin, but longevity is the promise our brand is built on.</p>
+          <summary>How long do AuroraBD fragrances last?</summary>
+          <p>AuroraBD fragrances are made with premium-grade, long-lasting formulations. Performance varies by scent and skin, but longevity is the promise our brand is built on.</p>
         </details>
         <details>
           <summary>Which sizes are available?</summary>
@@ -123,7 +122,7 @@
   <footer class="site-footer">
     <div class="container footer-grid">
       <div class="f-brand">
-        <span class="brand-name"><span class="spark">✦</span>AURORA<span class="spark">✦</span></span>
+        <span class="brand-name"><span class="spark">✦</span>AURORA<span class="bd">BD</span><span class="spark">✦</span></span>
         <p>Premium, long-lasting fragrances crafted with passion, quality and trust — a signature of confidence, made in Bangladesh.</p>
       </div>
       <div>
@@ -154,7 +153,7 @@
       </div>
     </div>
     <div class="container footer-bottom">
-      <span>© <span class="jsYear">2025</span> Aurora — A Signature of Confidence</span>
+      <span>© <span class="jsYear">2025</span> AuroraBD — A Signature of Confidence</span>
       <span>Crafted with <span class="spark">✦</span> in Bangladesh</span>
     </div>
   </footer>

@@ -1,12 +1,12 @@
 /* ============================================================
-   AURORA — A Signature of Confidence
+   AURORABD — A Signature of Confidence
    Site configuration + product catalog
    ============================================================ */
 
 const AURORA = {
-  /* ⚠️ IMPORTANT — replace with Aurora's real WhatsApp number
-     (country code + number, digits only, e.g. "8801712345678") */
-  whatsapp: "8801XXXXXXXXX",
+  /* AuroraBD's WhatsApp number — all orders and contact messages
+     open a chat here (country code + number) */
+  whatsapp: "+8801911247619",
   currency: "৳", /* ৳ */
   deliveryFee: 100,
   deliveryNote: "Home delivery all over Bangladesh — flat ৳100",

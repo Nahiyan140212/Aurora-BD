@@ -11,7 +11,7 @@ const thumbSrc = slug => `images/products/thumb/${slug}.jpg`;
 const fullSrc = slug => `images/products/full/${slug}.jpg`;
 const sizePrice = ml => AURORA.sizes.find(s => s.ml === ml)?.price ?? 0;
 const waConfigured = () => !/X/i.test(AURORA.whatsapp);
-const waLink = text => `https://wa.me/${AURORA.whatsapp}?text=${encodeURIComponent(text)}`;
+const waLink = text => `https://wa.me/${AURORA.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`;
 
 /* ------------------ Cart (localStorage) ------------------ */
 const CART_KEY = "aurora_cart_v1";
@@ -54,7 +54,7 @@ function orderText() {
     return `• ${p.name} — ${i.size}ml × ${i.qty} = ${sizePrice(i.size) * i.qty} Tk`;
   });
   return [
-    "Hello Aurora! I would like to place an order:",
+    "Hello AuroraBD! I would like to place an order:",
     ...lines,
     `Subtotal: ${cartSubtotal()} Tk`,
     `Delivery: ${AURORA.deliveryFee} Tk`,
@@ -77,32 +77,19 @@ function injectSharedUI() {
     <div class="cart-foot" id="cartFoot"></div>
   </aside>
 
-  <div class="modal" id="checkoutModal" role="dialog" aria-modal="true" aria-label="Checkout">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h3>Complete Your Order</h3>
-        <button id="modalClose" aria-label="Close checkout">×</button>
-      </div>
-      <div class="modal-body" id="modalBody"></div>
-    </div>
-  </div>
-
   <div class="toast" id="toast"></div>`;
   while (el.firstElementChild) document.body.appendChild(el.firstElementChild);
 
-  $("#overlay").addEventListener("click", () => { closeCart(); closeModal(); });
+  $("#overlay").addEventListener("click", closeCart);
   $("#cartClose").addEventListener("click", closeCart);
-  $("#modalClose").addEventListener("click", closeModal);
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape") { closeCart(); closeModal(); }
+    if (e.key === "Escape") closeCart();
   });
   renderCartItems();
 }
 
 const openCart = () => { renderCartItems(); $("#cartDrawer").classList.add("open"); $("#overlay").classList.add("show"); };
-const closeCart = () => { $("#cartDrawer")?.classList.remove("open"); if (!$("#checkoutModal")?.classList.contains("show")) $("#overlay")?.classList.remove("show"); };
-const openModal = () => { renderCheckout(); closeCart(); $("#checkoutModal").classList.add("show"); $("#overlay").classList.add("show"); };
-const closeModal = () => { $("#checkoutModal")?.classList.remove("show"); $("#overlay")?.classList.remove("show"); };
+const closeCart = () => { $("#cartDrawer")?.classList.remove("open"); $("#overlay")?.classList.remove("show"); };
 
 let toastTimer;
 function toast(msg) {
@@ -155,85 +142,32 @@ function renderCartItems() {
     <div class="tot-row"><span>Subtotal</span><span>${fmt(cartSubtotal())}</span></div>
     <div class="tot-row"><span>Delivery (all Bangladesh)</span><span>${fmt(AURORA.deliveryFee)}</span></div>
     <div class="tot-row grand"><span>Total</span><span>${fmt(cartSubtotal() + AURORA.deliveryFee)}</span></div>
-    <button class="btn btn-gold btn-block" id="checkoutBtn">Checkout — Cash on Delivery</button>
-    ${waConfigured() ? `<a class="btn wa-btn btn-block" href="${waLink(orderText())}" target="_blank" rel="noopener">Order via WhatsApp</a>` : ""}`;
+    <a class="btn btn-gold btn-block" href="${waLink(orderText())}" target="_blank" rel="noopener">Checkout via WhatsApp ✦</a>
+    <p class="cart-note">Your order opens in WhatsApp — just press send.<br>Cash on delivery, all over Bangladesh.</p>`;
 
-  $("#checkoutBtn").addEventListener("click", openModal);
   $$("[data-inc]", wrap).forEach(b => b.addEventListener("click", () => setQty(+b.dataset.inc, 1)));
   $$("[data-dec]", wrap).forEach(b => b.addEventListener("click", () => setQty(+b.dataset.dec, -1)));
   $$("[data-rm]", wrap).forEach(b => b.addEventListener("click", () => removeItem(+b.dataset.rm)));
 }
 
-/* ------------------ Checkout (Netlify form) ------------------ */
-function renderCheckout() {
-  const body = $("#modalBody");
-  const cart = getCart();
-  if (!cart.length) { closeModal(); return; }
-
-  const rows = cart.map(i => {
-    const p = bySlug(i.slug);
-    return `<div><span>${p.name} · ${i.size}ml × ${i.qty}</span><span>${fmt(sizePrice(i.size) * i.qty)}</span></div>`;
-  }).join("");
-
-  body.innerHTML = `
-    <div class="order-summary">
-      ${rows}
-      <div><span>Delivery</span><span>${fmt(AURORA.deliveryFee)}</span></div>
-      <div class="g"><span>Total (Cash on Delivery)</span><span>${fmt(cartSubtotal() + AURORA.deliveryFee)}</span></div>
-    </div>
-    <form id="orderForm">
-      <div class="form-field">
-        <label for="of-name">Full Name *</label>
-        <input id="of-name" name="name" required autocomplete="name">
-      </div>
-      <div class="form-field">
-        <label for="of-phone">Phone Number *</label>
-        <input id="of-phone" name="phone" type="tel" required autocomplete="tel" placeholder="01XXXXXXXXX">
-      </div>
-      <div class="form-field">
-        <label for="of-address">Delivery Address *</label>
-        <textarea id="of-address" name="address" required style="min-height:90px"></textarea>
-      </div>
-      <div class="form-field">
-        <label for="of-note">Note (optional)</label>
-        <input id="of-note" name="note">
-      </div>
-      <button class="btn btn-gold btn-block" type="submit">Confirm Order ✦</button>
-      ${waConfigured() ? `<a class="btn wa-btn btn-block" style="margin-top:.7rem" href="${waLink(orderText())}" target="_blank" rel="noopener">Prefer WhatsApp? Order There</a>` : ""}
-    </form>`;
-
-  $("#orderForm").addEventListener("submit", async e => {
+/* ------------------ Contact form → WhatsApp ------------------ */
+function initContact() {
+  const form = $("#contactForm");
+  if (!form) return;
+  form.addEventListener("submit", e => {
     e.preventDefault();
-    const btn = $("button[type=submit]", e.target);
-    btn.disabled = true;
-    btn.textContent = "Placing order…";
-    const data = new URLSearchParams();
-    data.append("form-name", "order");
-    data.append("name", $("#of-name").value);
-    data.append("phone", $("#of-phone").value);
-    data.append("address", $("#of-address").value);
-    data.append("note", $("#of-note").value);
-    data.append("order", orderText());
-    try {
-      const res = await fetch("/", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: data.toString()
-      });
-      if (!res.ok) throw new Error("Network error");
-      body.innerHTML = `
-        <div class="order-success">
-          <div class="spark-lg">✦</div>
-          <h3>Order Received</h3>
-          <p>Thank you! We will call you shortly to confirm your order.<br>
-          Cash on delivery — ${AURORA.deliveryNote.toLowerCase()}.</p>
-        </div>`;
-      saveCart([]);
-    } catch {
-      btn.disabled = false;
-      btn.textContent = "Confirm Order ✦";
-      toast("Could not submit — please try WhatsApp");
-    }
+    const name = $("#c-name").value.trim();
+    const phone = $("#c-phone").value.trim();
+    const email = $("#c-email").value.trim();
+    const msg = $("#c-msg").value.trim();
+    const text = [
+      `Hello AuroraBD! I'm ${name}.`,
+      `Phone: ${phone}`,
+      email ? `Email: ${email}` : "",
+      "",
+      msg
+    ].filter(Boolean).join("\n");
+    window.open(waLink(text), "_blank", "noopener");
   });
 }
 
@@ -244,7 +178,7 @@ function cardHTML(p, i = 0) {
   return `
   <a class="card" href="product.html?p=${p.slug}" data-reveal style="--rd:${(i % 4) * 0.08}s">
     <div class="card-media">
-      <img src="${thumbSrc(p.images[0])}" alt="${p.name} — Aurora fragrance" loading="lazy">
+      <img src="${thumbSrc(p.images[0])}" alt="${p.name} — AuroraBD fragrance" loading="lazy">
       <span class="card-view">View Fragrance</span>
     </div>
     <div class="card-body">
@@ -296,7 +230,7 @@ function initNewsletter() {
         body: data.toString()
       });
     } catch { /* static preview — ignore */ }
-    form.outerHTML = `<p class="nl-done">Welcome to the Aurora circle ✦</p>`;
+    form.outerHTML = `<p class="nl-done">Welcome to the AuroraBD circle ✦</p>`;
   });
 }
 
@@ -382,7 +316,7 @@ function initProduct() {
   if (!wrap) return;
   const slug = new URLSearchParams(location.search).get("p");
   const p = bySlug(slug) || PRODUCTS[0];
-  document.title = `${p.name} — Aurora Perfume`;
+  document.title = `${p.name} — AuroraBD Perfume`;
 
   let size = 50;
   let qty = 1;
@@ -403,7 +337,7 @@ function initProduct() {
 
   wrap.innerHTML = `
     <div class="pdp-gallery" data-reveal>
-      <div class="pdp-main"><img id="pdpImg" src="${fullSrc(p.images[0])}" alt="${p.name} — Aurora fragrance card"></div>
+      <div class="pdp-main"><img id="pdpImg" src="${fullSrc(p.images[0])}" alt="${p.name} — AuroraBD fragrance card"></div>
       ${thumbs}
     </div>
     <div data-reveal style="--rd:.1s">
@@ -455,7 +389,7 @@ function initProduct() {
     $("#qOut").textContent = qty;
     const wa = $("#waOrder");
     if (wa) wa.href = waLink(
-      `Hello Aurora! I would like to order:\n• ${p.name} — ${size}ml × ${qty} = ${sizePrice(size) * qty} Tk\nDelivery: ${AURORA.deliveryFee} Tk\nTotal: ${sizePrice(size) * qty + AURORA.deliveryFee} Tk`
+      `Hello AuroraBD! I would like to order:\n• ${p.name} — ${size}ml × ${qty} = ${sizePrice(size) * qty} Tk\nDelivery: ${AURORA.deliveryFee} Tk\nTotal: ${sizePrice(size) * qty + AURORA.deliveryFee} Tk`
     );
   };
 
@@ -492,7 +426,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const cw = $("#contactWa");
   if (cw) {
-    if (waConfigured()) cw.href = waLink("Hello Aurora! I have a question.");
+    if (waConfigured()) cw.href = waLink("Hello AuroraBD! I have a question.");
     else cw.remove();
   }
 
@@ -500,6 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
     case "home": initHome(); break;
     case "shop": initShop(); break;
     case "product": initProduct(); break;
+    case "contact": initContact(); break;
   }
   initReveal();
 });

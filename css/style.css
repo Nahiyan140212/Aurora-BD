@@ -180,6 +180,12 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 500; line-height: 1.12; }
   gap: 0.45em;
 }
 .brand-name .spark { color: var(--gold); font-size: 0.62em; transform: translateY(-2px); }
+.brand-name .bd {
+  background: linear-gradient(115deg, var(--gold-light), var(--gold) 55%, var(--gold-deep));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 .brand-tag {
   display: block;
   font-family: var(--sans);
@@ -1123,57 +1129,20 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 500; line-height: 1.12; }
 .tot-row.grand { font-size: 1.15rem; color: var(--text); font-weight: 500; padding-top: 0.6rem; }
 .tot-row.grand span:last-child { font-family: var(--serif); font-size: 1.45rem; font-weight: 700; }
 .cart-foot .btn { margin-top: 1rem; }
-
-/* ---------- Checkout modal ---------- */
-.modal {
-  position: fixed;
-  inset: 0;
-  z-index: 160;
-  display: grid;
-  place-items: center;
-  padding: 1.2rem;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-}
-.modal.show { opacity: 1; pointer-events: auto; }
-.modal-card {
-  background: var(--paper);
-  border-radius: 6px;
-  width: min(560px, 100%);
-  max-height: 92vh;
-  overflow-y: auto;
-  box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.7);
-  transform: translateY(14px);
-  transition: transform 0.35s var(--ease);
-}
-.modal.show .modal-card { transform: translateY(0); }
-.modal-head {
-  background: var(--black);
-  color: var(--paper);
-  padding: 1.2rem 1.7rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.modal-head h3 { font-size: 1.35rem; }
-.modal-head button { background: none; border: none; color: var(--gold-light); font-size: 1.4rem; }
-.modal-body { padding: 1.6rem 1.7rem 1.8rem; }
-.order-summary {
-  background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 1rem 1.2rem;
-  margin-bottom: 1.4rem;
-  font-size: 0.88rem;
+.cart-note {
+  margin-top: 0.9rem;
+  text-align: center;
+  font-size: 0.76rem;
   color: var(--muted);
+  letter-spacing: 0.06em;
+  line-height: 1.7;
 }
-.order-summary div { display: flex; justify-content: space-between; padding: 0.18rem 0; }
-.order-summary .g { color: var(--text); font-weight: 500; border-top: 1px solid var(--line); margin-top: 0.4rem; padding-top: 0.55rem; }
-.order-success { text-align: center; padding: 2.5rem 1rem; }
-.order-success .spark-lg { font-size: 2rem; color: var(--gold); }
-.order-success h3 { font-size: 1.7rem; margin: 0.8rem 0 0.6rem; }
-.order-success p { color: var(--muted); }
+.form-hint {
+  margin-top: 0.9rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
 
 /* ---------- Toast ---------- */
 .toast {

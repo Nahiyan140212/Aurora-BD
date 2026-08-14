@@ -1,6 +1,6 @@
-# ✦ AURORA ✦ — A Signature of Confidence
+# ✦ AURORABD ✦ — A Signature of Confidence
 
-Official website for **Aurora**, a premium perfume brand from Bangladesh.
+Official website for **AuroraBD**, a premium perfume brand from Bangladesh.
 Founder: Md. Jahirul Islam Fahim.
 
 Elegant, minimalist, luxury design in white · midnight black · deep gold — built as a
@@ -12,29 +12,28 @@ Elegant, minimalist, luxury design in white · midnight black · deep gold — b
 2. Build command: *(leave empty)* — Publish directory: `.` (already set in `netlify.toml`).
 3. Deploy, then connect your domain.
 
-### Order & contact forms (work automatically on Netlify)
+## 🛒 How ordering works (WhatsApp — no payment gateway needed)
 
-The site uses **Netlify Forms** — no backend needed:
+Everything routes to AuroraBD's WhatsApp (number set in [`js/data.js`](js/data.js)):
 
-- `order` — submitted from the cart's "Checkout — Cash on Delivery" flow
-- `contact` — the contact page form
-- `newsletter` — email signups
+- **Product page → "Order Now on WhatsApp"** — opens a chat with the product,
+  size, quantity and total pre-filled.
+- **Cart → "Checkout via WhatsApp"** — customers add multiple items to their bag,
+  then the full order summary (items, subtotal, ৳100 delivery, total) opens in
+  WhatsApp, ready to send.
+- **Contact form → "Send via WhatsApp"** — the visitor's name, phone and message
+  open in a WhatsApp chat.
 
-After the first deploy, open **Netlify → Forms** to see submissions, and turn on
-**email notifications** (Forms → Notifications) so every order/message reaches your inbox.
+Payment is cash on delivery, confirmed in the WhatsApp conversation.
 
-## ⚠️ One thing to configure: the WhatsApp number
-
-Open [`js/data.js`](js/data.js) — the very first setting:
+To change the number, edit the first setting in `js/data.js`:
 
 ```js
-whatsapp: "8801XXXXXXXXX",  // ← replace with Aurora's real WhatsApp number
+whatsapp: "+8801911247619",
 ```
 
-Replace it with the real number (country code + number, digits only, e.g. `8801712345678`).
-Until it is replaced, all "Order via WhatsApp" buttons stay hidden and ordering happens
-through the built-in cash-on-delivery checkout (Netlify Forms) — so the site is fully
-functional either way.
+The **newsletter** signup is the one exception — it submits to Netlify Forms
+(visible under **Netlify → Forms** after deploy; enable email notifications there).
 
 ## 🛍️ Managing products
 
@@ -59,11 +58,10 @@ index.html        Home — hero, collections, bestsellers, story, values, pricin
 shop.html         Full catalog with filters + search
 product.html      Product page (renders from ?p=<slug>)
 about.html        Brand story
-contact.html      Contact form, order info, FAQ
-thanks.html       Form success page
+contact.html      Contact via WhatsApp, order info, FAQ
 css/style.css     Design system (white / midnight black / deep gold)
 js/data.js        ⚙️ Site config + product catalog  ← edit this one
-js/app.js         Cart, checkout, rendering, animations
+js/app.js         Cart, WhatsApp checkout, rendering, animations
 images/products/  Optimized product cards (thumb + full)
 ```
 
@@ -73,5 +71,3 @@ images/products/  Optimized product cards (thumb + full)
 python3 -m http.server 8000
 # open http://localhost:8000
 ```
-
-(Form submissions only work on Netlify, not in local preview.)
