@@ -1,15 +1,11 @@
 ---
-# Fill in the fields below to create a basic custom agent for your repository.
-# The Copilot CLI can be used for local testing: https://gh.io/customagents/cli
-# To make this agent available, merge this file into the default repository branch.
-# For format details, see: https://gh.io/customagents/config
+name: storefront-qa
+description: Reviews the AuroraBD static site (HTML/CSS/vanilla JS) for correctness in the product catalog, WhatsApp checkout flow, and pricing consistency.
+---
 
-name:
-description:
-Reviews the AuroraBD static site (HTML/CSS/vanilla JS) for correctness in the product catalog, WhatsApp checkout flow, and pricing consistency.
+# Storefront QA
 
-# My Agent
-
+This is a static site with no build step. Review changes for:
 
 - **js/data.js**: every product entry has a valid category (For Him / For Her / Unisex),
   a valid badge (Bestseller / New / null), complete top/heart/base notes, and image
