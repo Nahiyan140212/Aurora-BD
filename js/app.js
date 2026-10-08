@@ -529,18 +529,23 @@ const sliderNav = () => `
   </div>`;
 
 /* ============================================================
-   Component: Category card
+   Component: World card (Fragrance / Skincare panel)
    ============================================================ */
-function categoryCard({ slug, title, image, mono, note }) {
+function worldCard({ title, slug, image, focus, desc, links }) {
   const n = countOf(slug);
-  const media = image
-    ? `<div class="media"><img src="${thumbSrc(image)}" alt="" loading="lazy" width="720" height="480"><span class="go">Shop now ${icon("arrow")}</span></div>`
-    : `<div class="media tonal"><span class="mono" aria-hidden="true">${mono || title[0]}</span><p>${note || ""}</p></div>`;
+  const subs = links.filter(s => countOf(s) > 0);
   return `
-    <a class="cat-card" href="${collUrl(slug)}" data-reveal>
-      ${media}
-      <div class="label"><h3>${title}</h3><span class="count">${n ? `${n} product${n === 1 ? "" : "s"}` : "Coming soon"}</span></div>
-    </a>`;
+    <article class="world" data-reveal>
+      <a class="world-media" href="${collUrl(slug)}" tabindex="-1" aria-hidden="true">
+        <img src="${fullSrc(image)}" alt="" loading="lazy" style="object-position:${focus || "50% 50%"}">
+      </a>
+      <div class="world-body">
+        <div class="world-head"><h3 class="h2"><a href="${collUrl(slug)}">${title}</a></h3><span class="count">${n} product${n === 1 ? "" : "s"}</span></div>
+        <p>${desc}</p>
+        ${subs.length ? `<nav class="world-links" aria-label="${title} categories">${subs.map(s => `<a href="${collUrl(s)}">${COLLECTIONS[s].nav || COLLECTIONS[s].title}<span>${countOf(s)}</span></a>`).join("")}</nav>` : ""}
+        <a class="btn" href="${collUrl(slug)}">Shop ${title.toLowerCase()}</a>
+      </div>
+    </article>`;
 }
 
 /* ============================================================
@@ -920,20 +925,32 @@ function initReveal(root = document) {
 function initHome() {
   initHeroSlideshow();
 
-  /* Shop by category */
-  const cats = $("#homeCategories");
-  if (cats) cats.innerHTML = [
-    { slug: "perfume-men", title: "For Men", image: "dior-sauvage" },
-    { slug: "perfume-women", title: "For Women", image: "miss-dior" },
-    { slug: "perfume-unisex", title: "Unisex", image: "lattafa-khamrah" },
-    hasSkincare()
-      ? { slug: "skincare", title: "Skincare", image: (bySlug(SKINCARE_FEATURED[0]) || PRODUCTS.find(isSkincare)).images[0] }
-      : { slug: "skincare", title: "Skincare", mono: "Skin", note: "Everyday essentials — launching soon." }
-  ].map(categoryCard).join("");
+  /* Fragrance & Skincare — two equal panels */
+  const worlds = $("#worlds");
+  if (worlds) worlds.innerHTML = [
+    { title: "Fragrance", slug: "perfume", image: "lattafa-khamrah", focus: "50% 50%",
+      desc: "Long-lasting perfumes for men, women and everyone — from fresh and citrus to woody, sweet and oud. Sizes from 10ml.",
+      links: ["perfume-men", "perfume-women", "perfume-unisex", "perfume-best-sellers"] },
+    { title: "Skincare", slug: "skincare", image: "the-face-shop-rice-ceramide-moisturizing-cream", focus: "32% 50%",
+      desc: "Korean skincare from COSRX, Anua, Beauty of Joseon, SKIN1004 and more — cleansers, serums, moisturizers and sunscreens.",
+      links: SKINCARE_CATEGORIES.map(k => `skincare-${k.key}`) }
+  ].map(worldCard).join("");
 
-  /* Best sellers slider */
-  const best = $("#bestSellers");
-  if (best) { best.innerHTML = productGrid(collectionProducts("best-sellers")); initSlider(best.closest(".slider-wrap")); }
+  /* The Aurora Edit — best-selling perfume and featured skincare, alternating */
+  const edit = $("#auroraEdit");
+  if (edit) {
+    const best = collectionProducts("best-sellers");
+    const scents = [...best, ...FEATURED_SLUGS.map(bySlug).filter(p => p && !best.includes(p))];
+    const skin = skincarePicks();
+    const n = Math.min(8, Math.max(scents.length, skin.length));
+    const mixed = [];
+    for (let i = 0; i < n; i++) {
+      if (scents[i]) mixed.push(scents[i]);
+      if (skin[i]) mixed.push(skin[i]);
+    }
+    edit.innerHTML = productGrid(mixed);
+    initSlider(edit.closest(".slider-wrap"));
+  }
 
   /* New arrivals */
   const fresh = $("#newArrivals");
@@ -946,35 +963,13 @@ function initHome() {
   initSizePicker();
   initFeaturedTabs();
   initScentFinder();
+  initRoutine();
+}
 
-  /* Skincare category tiles */
-  const skin = $("#skinCats");
-  if (skin) skin.innerHTML = SKINCARE_CATEGORIES.slice(0, 7).map((k, i) => {
-    const n = countOf(`skincare-${k.key}`);
-    return `<a href="${collUrl(`skincare-${k.key}`)}"><span class="n">0${i + 1}</span><span><strong>${k.label}</strong><small>${n ? `${n} product${n === 1 ? "" : "s"}` : "Coming soon"}</small></span></a>`;
-  }).join("") + `<a href="${collUrl("skincare")}"><span class="n">→</span><span><strong>All Skincare</strong><small>Browse the range</small></span></a>`;
-  if (hasSkincare()) $("#skinStatus")?.remove();
-
-  /* Skincare products row */
-  const skinRow = $("#skinProducts");
-  if (skinRow && hasSkincare()) {
-    const picks = [...SKINCARE_FEATURED.map(bySlug).filter(Boolean), ...PRODUCTS.filter(p => isSkincare(p) && !SKINCARE_FEATURED.includes(p.slug))];
-    skinRow.innerHTML = productGrid(picks, { reveal: false });
-    const wrap = skinRow.closest(".slider-wrap");
-    wrap.hidden = false;
-    initSlider(wrap);
-  }
-
-  /* Skincare discovery — only appears once skincare products list skin types / concerns */
-  const disc = $("#skinDiscovery");
-  if (disc) {
-    const chips = [...SKIN_TYPES.map(t => [`skin-${t.key}`, t.label]), ...SKIN_CONCERNS.map(t => [`concern-${t.key}`, t.label])]
-      .filter(([slug]) => countOf(slug) > 0);
-    if (chips.length) {
-      disc.hidden = false;
-      $("#skinChips").innerHTML = chips.map(([slug, label]) => `<a class="pill" href="${collUrl(slug)}">${label}</a>`).join("");
-    }
-  }
+/* Skincare in the curated SKINCARE_FEATURED order, then the rest */
+function skincarePicks() {
+  const featured = (typeof SKINCARE_FEATURED !== "undefined" ? SKINCARE_FEATURED : []).map(bySlug).filter(p => p && isSkincare(p));
+  return [...featured, ...PRODUCTS.filter(p => isSkincare(p) && !featured.includes(p))];
 }
 
 /* Hero: autoplay with progress bars, arrows, swipe, pause on hover / hidden tab */
@@ -1070,18 +1065,21 @@ function initSizePicker() {
   draw(AURORA.sizes[0].ml);
 }
 
-/* Featured perfumes with Men / Women / Unisex tabs */
+/* Featured — Fragrance | Skincare tabs */
 function initFeaturedTabs() {
   const tabs = $$("#featuredTabs .tab"), fgrid = $("#featuredGrid"), fmore = $("#featuredMore");
   if (!fgrid) return;
   const rank = p => { const i = FEATURED_SLUGS.indexOf(p.slug); return i < 0 ? (p.badge === "Bestseller" ? 50 : p.badge === "New" ? 60 : 70) : i; };
+  const lists = {
+    perfume: () => [...collectionProducts("perfume")].sort((a, b) => rank(a) - rank(b)),
+    skincare: skincarePicks
+  };
   const pick = slug => {
-    const list = collectionProducts(slug);
-    fgrid.innerHTML = productGrid([...list].sort((a, b) => rank(a) - rank(b)).slice(0, 8), { reveal: false });
+    const list = (lists[slug] || (() => collectionProducts(slug)))();
+    fgrid.innerHTML = productGrid(list.slice(0, 8), { reveal: false });
     replay(fgrid, "fade-swap");
-    const who = { "perfume-men": "men's", "perfume-women": "women's", "perfume-unisex": "unisex" }[slug];
     fmore.href = collUrl(slug);
-    fmore.innerHTML = `View all ${who} perfume (${list.length}) ${icon("arrow")}`;
+    fmore.innerHTML = `View all ${COLLECTIONS[slug].title.toLowerCase()} (${countOf(slug)}) ${icon("arrow")}`;
   };
   tabs.forEach(t => t.addEventListener("click", () => {
     tabs.forEach(x => { x.setAttribute("aria-selected", "false"); x.tabIndex = -1; });
@@ -1089,7 +1087,65 @@ function initFeaturedTabs() {
     pick(t.dataset.coll);
   }));
   arrowKeys($("#featuredTabs"), tabs);
-  pick(tabs[0].dataset.coll);
+  tabs.forEach(t => { if (!countOf(t.dataset.coll)) t.hidden = true; });
+  pick(tabs.find(t => !t.hidden)?.dataset.coll || "perfume");
+}
+
+/* Build your skincare routine — pick a step, see its products in place */
+const ROUTINE = [
+  { key: "cleanser", step: "Cleanse", when: "Morning & night",
+    desc: "Start with clean skin. A gentle cleanser removes oil, dirt and sunscreen without stripping your skin." },
+  { key: "toner", step: "Tone", when: "Morning & night",
+    desc: "Rebalances skin after cleansing and helps it take in what comes next." },
+  { key: "serum", step: "Treat", when: "Morning & night",
+    desc: "Serums, essences and ampoules target what matters to you — glow, dark spots, hydration or pores." },
+  { key: "moisturizer", step: "Moisturize", when: "Morning & night",
+    desc: "Locks in hydration and supports your skin barrier so skin stays soft and comfortable." },
+  { key: "sunscreen", step: "Protect", when: "Every morning",
+    desc: "Finish every morning with SPF to protect your skin from UVA and UVB rays." }
+];
+function initRoutine() {
+  const stepsEl = $("#routineSteps");
+  if (!stepsEl) return;
+  const steps = ROUTINE.map(s => ({ ...s, slug: `skincare-${s.key}`, list: collectionProducts(`skincare-${s.key}`) })).filter(s => s.list.length);
+  if (!steps.length) { stepsEl.closest("section").hidden = true; return; }
+  stepsEl.innerHTML = steps.map((s, i) => `
+    <button role="tab" aria-selected="${i === 0}" data-i="${i}" tabindex="${i === 0 ? 0 : -1}">
+      <span class="num" aria-hidden="true">${i + 1}</span>
+      <span><strong>${s.step}</strong><small>${labelOf(SKINCARE_CATEGORIES, s.key)} · ${s.list.length}</small></span>
+    </button>`).join("");
+  const info = $("#routineInfo"), track = $("#routineTrack");
+  const pick = i => {
+    const s = steps[i];
+    info.innerHTML = `
+      <span class="step-no">Step ${i + 1} · ${s.when}</span>
+      <h3 class="h3">${s.step}</h3>
+      <p>${s.desc}</p>
+      <span class="count">${s.list.length} ${labelOf(SKINCARE_CATEGORIES, s.key).toLowerCase()}${s.list.length === 1 ? "" : "s"}</span>
+      <a class="btn" href="${collUrl(s.slug)}">Shop ${labelOf(SKINCARE_CATEGORIES, s.key).toLowerCase()}s</a>`;
+    track.innerHTML = productGrid(s.list, { reveal: false });
+    track.scrollLeft = 0;
+    replay(info, "fade-swap"); replay(track, "fade-swap");
+    track.dispatchEvent(new Event("scroll"));
+  };
+  const btns = $$("button", stepsEl);
+  btns.forEach(b => b.addEventListener("click", () => {
+    btns.forEach(x => { x.setAttribute("aria-selected", "false"); x.tabIndex = -1; });
+    b.setAttribute("aria-selected", "true"); b.tabIndex = 0;
+    pick(+b.dataset.i);
+  }));
+  arrowKeys(stepsEl, btns);
+  initSlider(track.closest(".slider-wrap"));
+  pick(0);
+
+  /* Skin type & concern shortcuts — only those with products */
+  const chips = $("#skinChips");
+  const links = [...SKIN_TYPES.map(t => [`skin-${t.key}`, t.label]), ...SKIN_CONCERNS.map(t => [`concern-${t.key}`, t.label])]
+    .filter(([slug]) => countOf(slug) > 0);
+  if (chips && links.length) {
+    chips.insertAdjacentHTML("beforeend", links.map(([slug, label]) => `<a class="pill" href="${collUrl(slug)}">${label}</a>`).join(""));
+    chips.hidden = false;
+  }
 }
 
 /* Find your signature scent — pick a family, see its perfumes in place */

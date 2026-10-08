@@ -344,9 +344,23 @@ h1, h2, h3, h4 { font-weight: 400; line-height: 1.15; }
 .hero-track { display: grid; }
 .hero-slide { grid-area: 1 / 1; display: grid; visibility: hidden; opacity: 0; transition: opacity .9s var(--ease), visibility 0s linear .9s; }
 .hero-slide.is-on { visibility: visible; opacity: 1; transition: opacity .9s var(--ease); z-index: 1; }
-.hero-media { position: relative; aspect-ratio: 3 / 2; overflow: hidden; background: var(--sand); }
-.hero-media img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.04); transition: transform 6.5s linear; }
-.hero-slide.is-on .hero-media img { transform: scale(1); }
+.hero-media { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px var(--gutter) 0; align-items: start; }
+.hero-tile { display: block; position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--sand); }
+.hero-tile:nth-child(2) { margin-top: 24px; }
+.hero-tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.05); transition: transform 6.5s linear; }
+.hero-slide.is-on .hero-tile img { transform: scale(1); }
+.hero-tile .tag {
+  position: absolute; left: 8px; bottom: 8px; right: 8px; z-index: 1; display: flex; flex-direction: column; gap: 1px;
+  background: rgba(255, 252, 249, .95); padding: 7px 10px; line-height: 1.25;
+}
+.hero-tile .tag small { font-size: 9.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--wine); }
+.hero-tile .tag span { font-size: 12px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (min-width: 900px) {
+  .hero-media { gap: 18px; padding: 44px var(--gutter) 64px 0; }
+  .hero-tile:nth-child(2) { margin-top: 48px; }
+  .hero-tile .tag { left: 14px; bottom: 14px; right: auto; max-width: calc(100% - 28px); padding: 9px 14px; }
+  .hero-tile .tag span { font-size: 13px; }
+}
 .hero-copy { padding: 28px var(--gutter) 92px; }
 .hero-copy > * { opacity: 0; transform: translateY(16px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
 .hero-slide.is-on .hero-copy > * { opacity: 1; transform: none; }
@@ -388,33 +402,32 @@ h1, h2, h3, h4 { font-weight: 400; line-height: 1.15; }
   .hero-ctas .btn { flex: 0 0 auto; }
   .hero-controls { right: auto; left: calc(max(0px, (100vw - var(--max)) * 5 / 12) + var(--gutter)); width: calc(min(var(--max), 100vw) * 5 / 12 - 56px - var(--gutter)); bottom: 36px; }
 }
-@media (prefers-reduced-motion: reduce) { .hero-media img { transform: none !important; } }
-
+@media (prefers-reduced-motion: reduce) { .hero-tile img { transform: none !important; } }
 /* ============================================================
-   CATEGORY CARDS
+   TWO WORLDS — fragrance & skincare, side by side
    ============================================================ */
-.cat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-@media (min-width: 900px) { .cat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; } }
-.cat-card { display: block; position: relative; }
-.cat-card .media { aspect-ratio: 4 / 5; overflow: hidden; background: var(--sand); position: relative; }
-.cat-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 1s var(--ease); }
-.cat-card:hover img { transform: scale(1.04); }
-.cat-card .label { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding-top: 14px; }
-.cat-card h3 { color: var(--wine); }
-.cat-card .go {
-  position: absolute; left: 14px; bottom: 14px; z-index: 2; display: inline-flex; align-items: center; gap: 8px;
-  background: var(--wine); color: var(--on-wine); padding: 9px 14px;
-  font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase;
-  opacity: 0; transform: translateY(8px); transition: opacity .35s var(--ease), transform .35s var(--ease);
+.worlds { display: grid; gap: 28px; }
+@media (min-width: 900px) { .worlds { grid-template-columns: 1fr 1fr; gap: 24px; } }
+.world { display: flex; flex-direction: column; background: var(--blush); }
+.world:nth-child(2) { background: var(--cream); }
+.world-media { display: block; position: relative; aspect-ratio: 5 / 4; overflow: hidden; background: var(--sand); }
+.world-media img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--ease); }
+.world:hover .world-media img { transform: scale(1.035); }
+.world-body { padding: 24px 22px 26px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
+@media (min-width: 768px) { .world-body { padding: 30px 32px 32px; } }
+.world-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.world-head .count { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.world-body > p { color: var(--ink-soft); font-size: 14.5px; max-width: 34em; }
+.world-links { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid rgba(139, 47, 57, .16); margin-top: 4px; }
+.world-links a {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 13px 0; font-size: 14px;
+  border-bottom: 1px solid rgba(139, 47, 57, .16); transition: color .25s var(--ease), padding .3s var(--ease);
 }
-.cat-card .go .icon { width: 13px; height: 13px; }
-.cat-card:hover .go, .cat-card:focus-visible .go { opacity: 1; transform: none; }
-@media (hover: none) { .cat-card .go { display: none; } }
-.cat-card h3 { font-family: var(--serif); font-size: clamp(1.1rem, 2vw, 1.35rem); }
-.cat-card .count { font-size: 12px; color: var(--muted); white-space: nowrap; }
-.cat-card .media.tonal { background: var(--clay); display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; }
-.cat-card .media.tonal .mono { font-family: var(--serif); font-style: italic; font-size: clamp(2.6rem, 6vw, 4.2rem); color: #dcb7b2; line-height: 1; position: absolute; top: 18px; left: 18px; }
-.cat-card .media.tonal p { font-size: 13px; color: var(--muted); max-width: 18em; }
+.world-links a:nth-child(odd) { padding-right: 16px; }
+.world-links a:nth-child(even) { padding-left: 16px; border-left: 1px solid rgba(139, 47, 57, .16); }
+.world-links a span { color: var(--taupe); font-size: 12px; }
+.world-links a:hover { color: var(--wine); }
+.world-body .btn { align-self: flex-start; margin-top: 6px; }
 
 /* ============================================================
    PRODUCT CARD + GRID + SLIDER
@@ -564,26 +577,29 @@ h1, h2, h3, h4 { font-weight: 400; line-height: 1.15; }
 .fade-swap { animation: fadeSwap .5s var(--ease); }
 @keyframes fadeSwap { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-/* Skincare */
-.skin-feature { background: var(--cream); }
-.skin-grid { display: grid; gap: 36px; }
-@media (min-width: 900px) { .skin-grid { grid-template-columns: 5fr 7fr; gap: 64px; align-items: center; } }
-.skin-copy .lede { margin: 14px 0 28px; }
-.skin-copy .status { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); margin-bottom: 24px; }
-.skin-copy .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--wine); animation: pulse 2.4s ease-in-out infinite; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
-.skin-cats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid #e6d9cc; border-left: 1px solid #e6d9cc; background: var(--bg); }
-@media (min-width: 600px) { .skin-cats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.skin-cats a {
-  border-right: 1px solid #e6d9cc; border-bottom: 1px solid #e6d9cc;
-  padding: 22px 18px; min-height: 120px; display: flex; flex-direction: column; justify-content: space-between;
-  transition: background .3s var(--ease), color .3s var(--ease);
+/* Skincare routine builder (reuses the finder layout) */
+.routine-steps { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; margin-bottom: 28px; border-bottom: 1px solid var(--line-strong); }
+.routine-steps::-webkit-scrollbar { display: none; }
+.routine-steps button {
+  flex: 1 0 auto; display: flex; align-items: center; gap: 12px; padding: 14px 22px 16px 0; margin-right: 22px;
+  font-size: 14px; color: var(--muted); position: relative; text-align: left; white-space: nowrap;
 }
-.skin-cats a:hover { background: var(--wine); color: var(--on-wine); }
-.skin-cats a:hover strong, .skin-cats a:hover small, .skin-cats a:hover .n { color: var(--on-wine); }
-.skin-cats .n { font-size: 11px; color: var(--taupe); letter-spacing: 0.1em; }
-.skin-cats strong { font-family: var(--serif); font-weight: 400; font-size: 1.12rem; color: var(--wine); }
-.skin-cats small { display: block; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.routine-steps button .num {
+  width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line-strong); display: grid; place-items: center;
+  font-size: 12px; font-weight: 500; transition: all .3s var(--ease); flex: none;
+}
+.routine-steps button strong { display: block; font-weight: 500; color: var(--ink); }
+.routine-steps button small { font-size: 12px; }
+.routine-steps button::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--wine); transform: scaleX(0); transform-origin: left; transition: transform .35s var(--ease); }
+.routine-steps button[aria-selected="true"]::after { transform: scaleX(1); }
+.routine-steps button[aria-selected="true"] .num { background: var(--wine); border-color: var(--wine); color: var(--on-wine); }
+.routine-steps button[aria-selected="true"] strong { color: var(--wine); }
+.routine-steps button:hover .num { border-color: var(--wine); }
+.routine-info { background: var(--bg); }
+.routine-info .step-no { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--wine); display: block; margin-bottom: 8px; }
+.skin-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--line-strong); align-items: center; }
+.skin-chips .lbl { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-right: 8px; }
+.skin-chips .pill { background: var(--bg); }
 
 /* Why Aurora (light by default, inverted on .section.wine) */
 .why-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line); }
@@ -903,7 +919,12 @@ h1, h2, h3, h4 { font-weight: 400; line-height: 1.15; }
 
 /* Keep serif hairlines readable at large sizes (numbers like "10 + 4" in product names) */
 .h1, .h2, .h3, .display, .buybox h1, .prose, .story blockquote, .amt, .empty-state h2, .confirm h3,
-.panel h2, .prose-page h2, .prose-page p.lead, .cat-card h3, .skin-cats strong, .newsletter .h3 {
+.panel h2, .prose-page h2, .prose-page p.lead, .newsletter .h3 {
   font-variation-settings: "opsz" 28;
 }
 .sym { font-family: var(--sans); font-weight: 400; font-size: .82em; vertical-align: .06em; }
+
+/* Story: fragrance + skincare pair */
+.story-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+.story-pair img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; background: var(--sand); }
+.story-pair img:nth-child(2) { margin-top: 36px; }
