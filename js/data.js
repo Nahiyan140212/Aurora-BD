@@ -47,7 +47,11 @@ const AURORA = {
    wear: ["Daily", "Office", "Date Night", "Evening", "Special Occasion"]
 
    Skincare fields (category: "skincare"):
-   skincareType: a key from SKINCARE_CATEGORIES (e.g. "serum")
+   brand:        e.g. "COSRX"
+   size:         e.g. "150ml" or "100g" ("" if unknown)
+   price:        a number, or null to show "Price on request"
+   skincareType: a key from SKINCARE_CATEGORIES (e.g. "serum"), or a list
+   summary:      optional one-line intro under the product name
    skinTypes:    keys from SKIN_TYPES (e.g. ["oily", "combination"])
    concerns:     keys from SKIN_CONCERNS (e.g. ["hydration"])
    whatItDoes:   short paragraph
@@ -465,6 +469,289 @@ const PRODUCTS = [
     base: ["Musk"],
     prices: PREMIUM_PRICES,
     images: ["miss-dior"]
+  },
+
+  /* ================= SKINCARE =================
+     Details below come from each product's label / Aurora product image.
+     price: null shows "Price on request" — set a number (e.g. price: 1450)
+     to enable Add to bag. */
+
+  /* ----- Cleansers ----- */
+  {
+    slug: "cosrx-low-ph-good-morning-gel-cleanser",
+    name: "COSRX Low pH Good Morning Gel Cleanser",
+    brand: "COSRX",
+    category: "skincare",
+    skincareType: "cleanser",
+    size: "150ml",
+    price: null,
+    badge: null,
+    whatItDoes: "A gentle gel cleanser that removes dirt, oil and impurities while keeping your skin's natural pH balanced. It soothes and refreshes, helps keep pores clean and clear, and leaves skin soft, smooth and healthy.",
+    howToUse: "Massage a small amount onto damp skin, then rinse well with lukewarm water. Use morning and evening.",
+    concerns: [],
+    images: ["cosrx-low-ph-good-morning-gel-cleanser"]
+  },
+  {
+    slug: "cosrx-salicylic-acid-daily-gentle-cleanser",
+    name: "COSRX Salicylic Acid Daily Gentle Cleanser",
+    brand: "COSRX",
+    category: "skincare",
+    skincareType: "cleanser",
+    size: "150ml",
+    price: null,
+    badge: null,
+    whatItDoes: "A daily cleanser with salicylic acid that removes dirt, oil and impurities, helps unclog pores and prevent breakouts, and gently exfoliates — leaving skin clean, smooth and refreshed.",
+    keyIngredients: ["Salicylic Acid"],
+    howToUse: "Massage a small amount onto damp skin, then rinse well with lukewarm water.",
+    concerns: ["acne"],
+    images: ["cosrx-salicylic-acid-daily-gentle-cleanser"]
+  },
+  {
+    slug: "the-face-shop-rice-water-bright-foaming-cleanser",
+    name: "The Face Shop Rice Water Bright Foaming Cleanser",
+    brand: "The Face Shop",
+    category: "skincare",
+    skincareType: "cleanser",
+    size: "150ml",
+    price: null,
+    badge: null,
+    whatItDoes: "A foaming cleanser that deeply cleans away dust, excess oil and makeup. Rice water helps keep skin bright and fresh with a natural glow, and it cleans without dryness, leaving skin soft and smooth. Suitable for everyday use.",
+    keyIngredients: ["Rice Water"],
+    howToUse: "Work into a lather with water, massage onto damp skin, then rinse well.",
+    suitableFor: "All skin types.",
+    skinTypes: ["normal", "dry", "oily", "combination", "sensitive"],
+    concerns: ["brightening"],
+    images: ["the-face-shop-rice-water-bright-foaming-cleanser"]
+  },
+
+  /* ----- Serums, essences & ampoules ----- */
+  {
+    slug: "anua-niacinamide-10-txa-4-serum",
+    name: "Anua Niacinamide 10 + TXA 4 Serum",
+    brand: "Anua",
+    category: "skincare",
+    skincareType: "serum",
+    size: "30ml",
+    price: null,
+    badge: null,
+    whatItDoes: "A brightening serum with 10% niacinamide and 4% tranexamic acid. It helps brighten skin, reduce the look of dark spots and even out skin tone, while keeping skin hydrated, healthy and smooth.",
+    keyIngredients: ["Niacinamide 10%", "Tranexamic Acid (TXA) 4%"],
+    howToUse: "After cleansing, apply a few drops to the face and pat gently until absorbed. Follow with moisturizer, and sunscreen in the daytime.",
+    concerns: ["brightening", "hydration"],
+    images: ["anua-niacinamide-10-txa-4-serum"]
+  },
+  {
+    slug: "axis-y-dark-spot-correcting-glow-serum",
+    name: "AXIS-Y Dark Spot Correcting Glow Serum",
+    brand: "AXIS-Y",
+    category: "skincare",
+    skincareType: "serum",
+    size: "50ml",
+    price: null,
+    badge: null,
+    whatItDoes: "A glow serum with 5% niacinamide, squalane and rice extract. It helps reduce dark spots and pigmentation, brightens and evens skin tone, keeps skin hydrated and soft, refines texture and helps protect skin from environmental damage.",
+    keyIngredients: ["Niacinamide 5%", "Squalane", "Rice Extract"],
+    howToUse: "After cleansing, apply a small amount to the face and pat gently until absorbed. Follow with moisturizer, and sunscreen in the daytime.",
+    suitableFor: "All skin types — especially skin with dark spots, pigmentation or dullness.",
+    skinTypes: ["normal", "dry", "oily", "combination", "sensitive"],
+    concerns: ["brightening", "hydration"],
+    images: ["axis-y-dark-spot-correcting-glow-serum"]
+  },
+  {
+    slug: "cosrx-advanced-snail-96-mucin-power-essence",
+    name: "COSRX Advanced Snail 96 Mucin Power Essence",
+    brand: "COSRX",
+    category: "skincare",
+    skincareType: "serum",
+    size: "100ml",
+    price: null,
+    badge: null,
+    whatItDoes: "A lightweight essence made with 96% snail secretion filtrate. It deeply hydrates and locks in moisture, helps repair damaged skin, improves skin texture and elasticity, and gives a healthy, natural glow.",
+    keyIngredients: ["Snail Secretion Filtrate 96%"],
+    howToUse: "After cleansing, apply to the face and pat gently until absorbed, then follow with moisturizer.",
+    concerns: ["hydration"],
+    images: ["cosrx-advanced-snail-96-mucin-power-essence"]
+  },
+  {
+    slug: "medicube-txa-niacinamide-15-serum",
+    name: "Medicube TXA Niacinamide 15 Serum",
+    brand: "Medicube",
+    category: "skincare",
+    skincareType: "serum",
+    size: "30ml",
+    price: null,
+    badge: null,
+    whatItDoes: "A serum with 15% TXA and niacinamide. It helps reduce dark spots and marks, helps care for acne scars, improves uneven skin tone and texture, and helps keep skin hydrated.",
+    keyIngredients: ["Tranexamic Acid (TXA)", "Niacinamide"],
+    howToUse: "After cleansing, apply a few drops to the face and pat gently until absorbed. Follow with moisturizer, and sunscreen in the daytime.",
+    suitableFor: "All skin types — normal, dry, oily, combination and sensitive.",
+    skinTypes: ["normal", "dry", "oily", "combination", "sensitive"],
+    concerns: ["brightening", "acne", "hydration"],
+    images: ["medicube-txa-niacinamide-15-serum"]
+  },
+  {
+    slug: "skin1004-centella-tone-brightening-capsule-ampoule",
+    name: "SKIN1004 Madagascar Centella Tone Brightening Capsule Ampoule",
+    brand: "SKIN1004",
+    category: "skincare",
+    skincareType: "serum",
+    size: "100ml",
+    price: null,
+    badge: null,
+    whatItDoes: "A capsule ampoule made with Madagascar centella. It calms irritated and sensitive skin, brightens dull skin and evens skin tone, deeply hydrates and nourishes, and helps strengthen the skin barrier.",
+    keyIngredients: ["Centella Asiatica (Madagascar)"],
+    howToUse: "After cleansing, apply a small amount to the face and pat gently until absorbed, then follow with moisturizer.",
+    skinTypes: ["sensitive"],
+    concerns: ["brightening", "hydration"],
+    images: ["skin1004-centella-tone-brightening-capsule-ampoule"]
+  },
+  {
+    slug: "tiam-pore-minimizing-21-serum",
+    name: "TIAM Pore Minimizing 21 Serum",
+    brand: "TIAM",
+    category: "skincare",
+    skincareType: "serum",
+    size: "40ml",
+    price: null,
+    badge: null,
+    whatItDoes: "A niacinamide serum for clearer pores and smoother skin. It helps minimize the look of enlarged pores, controls excess oiliness, improves skin texture and helps reduce breakouts, leaving skin smoother and clearer.",
+    keyIngredients: ["Niacinamide"],
+    howToUse: "After cleansing, apply a few drops to the face and pat gently until absorbed, then follow with moisturizer.",
+    concerns: ["acne"],
+    images: ["tiam-pore-minimizing-21-serum"]
+  },
+
+  /* ----- Moisturizers ----- */
+  {
+    slug: "cosrx-advanced-snail-92-all-in-one-cream",
+    name: "COSRX Advanced Snail 92 All in One Cream",
+    brand: "COSRX",
+    category: "skincare",
+    skincareType: "moisturizer",
+    size: "100g",
+    price: null,
+    badge: null,
+    whatItDoes: "An all-in-one cream with 92% snail secretion filtrate. It deeply hydrates and nourishes, helps repair damaged skin, improves skin texture and elasticity, and gives a healthy, natural glow.",
+    keyIngredients: ["Snail Secretion Filtrate 92%"],
+    howToUse: "Apply an even layer as the last step of your routine, morning and evening.",
+    concerns: ["hydration"],
+    images: ["cosrx-advanced-snail-92-all-in-one-cream"]
+  },
+  {
+    slug: "dr-althea-345-relief-cream",
+    name: "Dr.Althea 345 Relief Cream",
+    brand: "Dr.Althea",
+    category: "skincare",
+    skincareType: "moisturizer",
+    size: "50ml",
+    price: null,
+    badge: null,
+    whatItDoes: "A relief cream that soothes irritated and sensitive skin, helps repair a damaged skin barrier, deeply hydrates and locks in moisture, and strengthens skin for a healthier, smoother look.",
+    howToUse: "Apply an even layer as the last step of your routine, morning and evening.",
+    skinTypes: ["sensitive"],
+    concerns: ["hydration"],
+    images: ["dr-althea-345-relief-cream"]
+  },
+  {
+    slug: "the-face-shop-rice-ceramide-moisturizing-cream",
+    name: "The Face Shop Rice & Ceramide Moisturizing Cream",
+    brand: "The Face Shop",
+    category: "skincare",
+    skincareType: "moisturizer",
+    size: "50ml",
+    price: null,
+    badge: null,
+    whatItDoes: "A moisturizing cream with rice and ceramide. It deeply moisturizes, strengthens the skin's natural barrier, helps reduce dryness and roughness, and keeps skin soft and smooth.",
+    keyIngredients: ["Rice", "Ceramide"],
+    howToUse: "Apply an even layer as the last step of your routine, morning and evening.",
+    concerns: ["hydration"],
+    images: ["the-face-shop-rice-ceramide-moisturizing-cream"]
+  },
+  {
+    slug: "tiam-txa-whitening-cream",
+    name: "TIAM TXA Whitening Cream",
+    brand: "TIAM",
+    category: "skincare",
+    skincareType: "moisturizer",
+    size: "50ml",
+    price: null,
+    badge: null,
+    whatItDoes: "A tranexamic acid cream for brighter, clearer, healthier-looking skin. It helps brighten skin tone, fade dark spots and uneven tone, keeps skin moisturized and supports a smoother look.",
+    keyIngredients: ["Tranexamic Acid (TXA)"],
+    howToUse: "Apply an even layer as the last step of your routine, morning and evening. Use sunscreen in the daytime.",
+    concerns: ["brightening", "hydration"],
+    images: ["tiam-txa-whitening-cream"]
+  },
+  {
+    slug: "arencia-vitamin-c-booster-shot",
+    name: "Arencia Vitamin C Booster Shot",
+    brand: "Arencia",
+    category: "skincare",
+    skincareType: ["moisturizer", "eye-care"],
+    size: "",
+    price: null,
+    badge: null,
+    summary: "A face and eye moisturizer with vitamin C.",
+    whatItDoes: "A face and eye moisturizer with a vitamin C complex and glutathione. It helps brighten skin and boost glow, reduces the look of dark spots and uneven tone, deeply hydrates, keeps skin smooth and soft, and gives antioxidant support to help protect skin from environmental damage.",
+    keyIngredients: ["Vitamin C Complex", "Glutathione"],
+    howToUse: "Apply a small amount to the face and around the eyes as the last step of your routine. Use sunscreen in the daytime.",
+    suitableFor: "All skin types.",
+    skinTypes: ["normal", "dry", "oily", "combination", "sensitive"],
+    concerns: ["brightening", "hydration"],
+    images: ["arencia-vitamin-c-booster-shot"]
+  },
+
+  /* ----- Sunscreens ----- */
+  {
+    slug: "beauty-of-joseon-relief-sun-aqua-fresh",
+    name: "Beauty of Joseon Relief Sun Aqua-Fresh Rice + B5 SPF50+ PA++++",
+    brand: "Beauty of Joseon",
+    category: "skincare",
+    skincareType: "sunscreen",
+    size: "",
+    price: null,
+    badge: null,
+    whatItDoes: "A lightweight SPF50+ PA++++ sunscreen with rice extract and panthenol (vitamin B5). It gives long-lasting UVA and UVB protection, hydrates and softens, strengthens the skin barrier, and has a light, non-sticky finish that absorbs quickly.",
+    keyIngredients: ["Rice Extract", "Panthenol (Vitamin B5)"],
+    howToUse: "Apply generously as the last step of your morning routine, 15 minutes before going out. Reapply every 2 hours in the sun.",
+    suitableFor: "Sensitive, oily / combination (especially), normal and dehydrated skin.",
+    skinTypes: ["sensitive", "oily", "combination", "normal"],
+    concerns: ["hydration"],
+    images: ["beauty-of-joseon-relief-sun-aqua-fresh"]
+  },
+  {
+    slug: "beauty-of-joseon-relief-sun-rice-probiotics",
+    name: "Beauty of Joseon Relief Sun Rice + Probiotics SPF50+ PA++++",
+    brand: "Beauty of Joseon",
+    category: "skincare",
+    skincareType: "sunscreen",
+    size: "",
+    price: null,
+    badge: null,
+    whatItDoes: "An SPF50+ PA++++ sunscreen with rice and probiotics. It gives long-lasting UVA and UVB protection, deeply hydrates and softens, calms and nourishes, and has a light, non-sticky, creamy finish suited to everyday use.",
+    keyIngredients: ["Rice", "Probiotics"],
+    howToUse: "Apply generously as the last step of your morning routine, 15 minutes before going out. Reapply every 2 hours in the sun.",
+    suitableFor: "Sensitive, dry and dehydrated, and normal skin.",
+    skinTypes: ["sensitive", "dry", "normal"],
+    concerns: ["hydration"],
+    images: ["beauty-of-joseon-relief-sun-rice-probiotics"]
+  },
+  {
+    slug: "missha-soft-finish-sun-milk",
+    name: "MISSHA Soft Finish Sun Milk SPF50+ PA+++",
+    brand: "MISSHA",
+    category: "skincare",
+    skincareType: "sunscreen",
+    size: "70ml",
+    price: null,
+    badge: null,
+    whatItDoes: "An SPF50+ PA+++ sun milk that protects against UVA and UVB rays, gives skin a smooth, soft finish, and has a lightweight, non-greasy formula that sits easily under makeup.",
+    howToUse: "Shake well. Apply generously as the last step of your morning routine, 15 minutes before going out. Reapply every 2 hours in the sun.",
+    suitableFor: "All skin types.",
+    skinTypes: ["normal", "dry", "oily", "combination", "sensitive"],
+    concerns: [],
+    images: ["missha-soft-finish-sun-milk"]
+
   }
 ];
 
@@ -473,6 +760,14 @@ const PRODUCTS = [
 const FEATURED_SLUGS = [
   "creed-aventus", "good-girl", "hawas-ice", "lattafa-khamrah",
   "cloud", "club-de-nuit-intense", "vampire-blood", "bleu-de-chanel"
+];
+
+/* Skincare shown in the Skincare menu and on the homepage, in this order */
+const SKINCARE_FEATURED = [
+  "anua-niacinamide-10-txa-4-serum", "cosrx-advanced-snail-96-mucin-power-essence",
+  "beauty-of-joseon-relief-sun-rice-probiotics", "medicube-txa-niacinamide-15-serum",
+  "skin1004-centella-tone-brightening-capsule-ampoule", "dr-althea-345-relief-cream",
+  "cosrx-low-ph-good-morning-gel-cleanser", "axis-y-dark-spot-correcting-glow-serum"
 ];
 
 /* ============================================================

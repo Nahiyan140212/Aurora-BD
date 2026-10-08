@@ -58,6 +58,7 @@ button { cursor: pointer; background: none; border: 0; }
 ul, ol { list-style: none; }
 ::selection { background: var(--accent-soft); color: var(--ink); }
 :focus-visible { outline: 1.5px solid var(--accent); outline-offset: 3px; }
+[hidden] { display: none !important; }
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
@@ -891,3 +892,18 @@ h1, h2, h3, h4 { font-weight: 400; line-height: 1.15; }
 .footer-bottom { margin-top: 48px; border-top: 1px solid var(--line-strong); padding-top: 20px; padding-bottom: 28px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 24px; font-size: 12.5px; color: var(--muted); }
 .footer-bottom ul { display: flex; gap: 20px; }
 .footer-bottom li + li { margin-top: 0; }
+
+/* ============================================================
+   SKINCARE — square product photos, price on request
+   ============================================================ */
+.gallery-main.square { aspect-ratio: 1 / 1; }
+@media (min-width: 900px) { .gallery-main.square { max-width: 640px; } }
+.modal-box .media.square { aspect-ratio: 1 / 1; }
+.pcard-price.ask { color: var(--muted); font-weight: 400; font-size: 13px; }
+
+/* Keep serif hairlines readable at large sizes (numbers like "10 + 4" in product names) */
+.h1, .h2, .h3, .display, .buybox h1, .prose, .story blockquote, .amt, .empty-state h2, .confirm h3,
+.panel h2, .prose-page h2, .prose-page p.lead, .cat-card h3, .skin-cats strong, .newsletter .h3 {
+  font-variation-settings: "opsz" 28;
+}
+.sym { font-family: var(--sans); font-weight: 400; font-size: .82em; vertical-align: .06em; }

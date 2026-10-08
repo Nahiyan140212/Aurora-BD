@@ -39,9 +39,11 @@ and `images`. Optional: `prices: PREMIUM_PRICES` for premium pricing,
 `type: "oil"` or `"roll-on"` for perfume oils / roll-ons, and `wear: [...]` for the
 "When to wear" section.
 
-**Skincare** entries use `category: "skincare"` plus `skincareType` (e.g. `"serum"`),
-`variants: [{ ml: 50, price: 890 }]`, and any of `skinTypes`, `concerns`, `whatItDoes`,
-`keyIngredients`, `howToUse`, `suitableFor`. The full field list is in the comment above
+**Skincare** entries use `category: "skincare"`, `brand`, `skincareType` (e.g. `"serum"`, or a
+list like `["moisturizer", "eye-care"]`), `size` (e.g. `"150ml"`) and `price`. Leave
+`price: null` to show **"Price on request"** with a WhatsApp ask button instead of Add to bag.
+Optional: `skinTypes`, `concerns`, `whatItDoes`, `keyIngredients`, `howToUse`,
+`suitableFor`, `summary`. `SKINCARE_FEATURED` sets the order on the homepage and menu. The full field list is in the comment above
 `PRODUCTS`.
 
 Menus, collections and filters build themselves from this data. Empty categories
@@ -50,7 +52,7 @@ is added; the homepage "Shop by skin type" section appears automatically once sk
 products list `skinTypes` / `concerns`.
 
 **Images:** add `images/products/full/<slug>.jpg` (≈1600×1066) and
-`images/products/thumb/<slug>.jpg` (720×480). Cards crop to a centred square.
+`images/products/thumb/<slug>.jpg` (720×480). Cards crop to a centred square. Skincare photos are square: full ≈1254×1254, thumb 720×720.
 
 Default sizes: 10ml ৳300 · 15ml ৳400 · 30ml ৳650 · 50ml ৳850 · 100ml ৳1,700.
 Premium: ৳350 · ৳450 · ৳750 · ৳1,000 · ৳1,800. Delivery ৳100 flat.

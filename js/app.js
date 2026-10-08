@@ -9,6 +9,8 @@
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+/* Product name for large serif headings — Bodoni's "+" is a hairline, so set it in the sans */
+const titleHTML = s => esc(s).replace(/\+/g, '<span class="sym">+</span>');
 
 const fmt = n => AURORA.currency + n.toLocaleString("en-US");
 const bySlug = slug => PRODUCTS.find(p => p.slug === slug);
@@ -64,23 +66,35 @@ const labelOf = (list, key) => list.find(x => x.key === key)?.label || key;
 
 /* Sizes: product `variants` replace the shared list; `prices` override it */
 const productSizes = p => p?.variants
-  ? p.variants.map(v => ({ ml: v.ml, price: v.price, label: v.label || `${v.ml}ml` }))
+  ? p.variants.map(v => ({ ml: v.ml, price: v.price ?? null, label: v.label ?? `${v.ml}ml` }))
+  : p && isSkincare(p) ? [{ ml: 1, price: p.price ?? null, label: p.size || "" }]
   : AURORA.sizes.map(s => ({ ml: s.ml, price: p?.prices?.[s.ml] ?? s.price, label: `${s.ml}ml` }));
 const sizePrice = (slug, ml) => productSizes(bySlug(slug)).find(s => s.ml === ml)?.price ?? 0;
 const sizeLabel = (slug, ml) => productSizes(bySlug(slug)).find(s => s.ml === ml)?.label ?? `${ml}ml`;
-const fromPrice = p => Math.min(...productSizes(p).map(s => s.price));
+/* A product without a price yet ("price: null") is shown as "Price on request" and ordered via WhatsApp */
+const hasPrice = p => productSizes(p).every(s => typeof s.price === "number");
+const fromPrice = p => hasPrice(p) ? Math.min(...productSizes(p).map(s => s.price)) : null;
+const priceText = p => hasPrice(p) ? `${productSizes(p).length > 1 ? "From " : ""}${fmt(fromPrice(p))}` : "Price on request";
+const askLink = p => waLink(`Hello AuroraBD! I'd like to order ${p.name}. What is the price?`);
+const askButton = p => waConfigured()
+  ? `<a class="btn btn-block" href="${askLink(p)}" target="_blank" rel="noopener">${icon("whatsapp")} Ask for price on WhatsApp</a>`
+  : `<a class="btn btn-block" href="contact.html">Contact us for the price</a>`;
 
 const scentKeys = p => !isPerfume(p) ? [] : SCENT_FAMILIES.filter(f =>
   (f.match.family && f.match.family.test(p.family || "")) ||
   (f.match.notes && f.match.notes.test(notesOf(p).join(" ")))
 ).map(f => f.key);
 
+/* skincareType may be one key or a list (e.g. ["moisturizer", "eye-care"]) */
+const skinCats = p => [].concat(p.skincareType || []);
+
 const productMeta = p => isSkincare(p)
-  ? labelOf(SKINCARE_CATEGORIES, p.skincareType) || "Skincare"
+  ? [p.brand, labelOf(SKINCARE_CATEGORIES, skinCats(p)[0]) || "Skincare"].filter(Boolean).join(" · ")
   : [GENDER[p.tag], perfumeType(p) === "spray" ? p.family : PERFUME_TYPES[perfumeType(p)]].filter(Boolean).join(" · ");
 
-const searchText = p => [p.name, p.tag, GENDER[p.tag], p.family, productMeta(p), ...notesOf(p),
-  ...(p.keyIngredients || []), ...scentKeys(p)].join(" ").toLowerCase();
+const searchText = p => [p.name, p.brand, p.tag, GENDER[p.tag], p.family, productMeta(p), ...notesOf(p),
+  ...(p.keyIngredients || []), ...skinCats(p).map(k => labelOf(SKINCARE_CATEGORIES, k)), ...scentKeys(p),
+  isSkincare(p) ? "skincare skin care" : "perfume fragrance"].join(" ").toLowerCase();
 
 /* ============================================================
    Collections
@@ -120,9 +134,9 @@ const COLLECTIONS = (() => {
     filter: p => scentKeys(p).includes(f.key), desc: f.desc }));
 
   add("skincare", { group: "skincare", title: "Skincare", nav: "All Skincare", filter: isSkincare,
-    desc: "Thoughtful everyday skincare from Aurora — simple routines, clearly explained." });
+    desc: "Korean skincare essentials — cleansers, serums, moisturizers and sunscreens, with what each one does and how to use it." });
   SKINCARE_CATEGORIES.forEach(k => add(`skincare-${k.key}`, { group: "skincare", title: k.label,
-    filter: skin(p => p.skincareType === k.key), desc: `Aurora ${k.label.toLowerCase()} — clearly explained, made for everyday use.` }));
+    filter: skin(p => skinCats(p).includes(k.key)), desc: `${k.label} — with what each product does, its key ingredients and how to use it.` }));
   add("skincare-best-sellers", { group: "skincare", title: "Skincare Best Sellers", nav: "Best Sellers", filter: skin(p => p.badge === "Bestseller"),
     desc: "Our most-loved skincare." });
   add("skincare-new-arrivals", { group: "skincare", title: "New in Skincare", nav: "New Arrivals", filter: skin(p => p.badge === "New"),
@@ -187,7 +201,8 @@ const soonTag = l => l.slug && countOf(l.slug) === 0 ? `<span class="tag-soon">S
    ============================================================ */
 function megaFeature(item) {
   if (item.feature === "skincare-note") {
-    return hasSkincare() ? "" : `
+    if (hasSkincare()) return megaFeature({ feature: (typeof SKINCARE_FEATURED !== "undefined" ? SKINCARE_FEATURED : PRODUCTS.filter(isSkincare).map(p => p.slug)).slice(0, 2) });
+    return `
       <div class="mega-note">
         <div>
           <span class="eyebrow">Coming soon</span>
@@ -419,7 +434,7 @@ const Search = {
       <a class="search-item" href="product.html?p=${p.slug}">
         <img src="${thumbSrc(p.images[0])}" alt="" loading="lazy" width="64" height="64">
         <div><strong>${esc(p.name)}</strong><span>${esc(productMeta(p))}</span></div>
-        <span class="price">${fmt(fromPrice(p))}</span>
+        <span class="price">${hasPrice(p) ? fmt(fromPrice(p)) : "Ask"}</span>
       </a>`).join("")}</div>`;
   },
   open() { Layer.open($("#searchPanel")); }
@@ -430,10 +445,12 @@ const Search = {
    ============================================================ */
 function productCard(p, opts = {}) {
   const sizes = productSizes(p);
-  const shown = opts.size ? sizes.find(s => s.ml === opts.size) : null;
-  const price = shown
-    ? `${fmt(shown.price)} <small>· ${shown.label}</small>`
-    : `${sizes.length > 1 ? "From " : ""}${fmt(fromPrice(p))}`;
+  const priced = hasPrice(p);
+  const shown = opts.size && priced ? sizes.find(s => s.ml === opts.size) : null;
+  const price = shown ? `${fmt(shown.price)} <small>· ${shown.label}</small>` : priceText(p);
+  const addTool = priced
+    ? `<button class="tool" data-quickadd="${p.slug}" aria-label="Quick add ${esc(p.name)}" aria-expanded="false">${icon("plus")}<span>Quick add</span></button>`
+    : waConfigured() ? `<a class="tool" href="${askLink(p)}" target="_blank" rel="noopener" aria-label="Ask the price of ${esc(p.name)} on WhatsApp">${icon("whatsapp")}<span>Ask price</span></a>` : "";
   const alt = p.images[1] ? `<img class="alt" src="${thumbSrc(p.images[1])}" alt="" loading="lazy" width="720" height="480">` : "";
   return `
     <article class="pcard" data-slug="${p.slug}" ${opts.reveal === false ? "" : "data-reveal"}>
@@ -445,18 +462,19 @@ function productCard(p, opts = {}) {
       </a>
       <div class="pcard-tools">
         <button class="tool qv" data-quickview="${p.slug}" aria-label="Quick view ${esc(p.name)}">${icon("eye")}<span>Quick view</span></button>
-        <button class="tool" data-quickadd="${p.slug}" aria-label="Quick add ${esc(p.name)}" aria-expanded="false">${icon("plus")}<span>Quick add</span></button>
+        ${addTool}
       </div>
-      <div class="pcard-sizes" aria-hidden="true">
+      ${priced ? `<div class="pcard-sizes" aria-hidden="true">
         <p>Choose size <button data-sizes-close aria-label="Close">${icon("close")}</button></p>
         <div class="sizes">${sizes.map(s => `<button data-add="${p.slug}" data-ml="${s.ml}">${s.label}<small>${fmt(s.price)}</small></button>`).join("")}</div>
-      </div>
+      </div>` : ""}
       </div>
       <div class="pcard-body">
         <h3><a href="product.html?p=${p.slug}">${esc(p.name)}</a></h3>
         <p class="pcard-meta">${esc(productMeta(p))}</p>
-        <p class="pcard-price">${price}</p>
-        ${sizes.length > 1 ? `<p class="pcard-size-list">${sizes.map(s => s.label.replace("ml", "")).join(" · ")} ml</p>` : ""}
+        <p class="pcard-price${priced ? "" : " ask"}">${price}</p>
+        ${sizes.length > 1 ? `<p class="pcard-size-list">${sizes.map(s => s.label.replace("ml", "")).join(" · ")} ml</p>`
+          : sizes[0]?.label && sizes[0].ml ? `<p class="pcard-size-list">${esc(sizes[0].label)}</p>` : ""}
       </div>
     </article>`;
 }
@@ -548,42 +566,44 @@ const QuickView = {
     const box = $("#quickViewBox");
     box.innerHTML = `
       <button class="icon-btn modal-close" data-close aria-label="Close">${icon("close")}</button>
-      <div class="media"><img src="${fullSrc(p.images[0])}" alt="${esc(p.name)} — Aurora" width="1600" height="1066"></div>
+      <div class="media${isSkincare(p) ? " square" : ""}"><img src="${fullSrc(p.images[0])}" alt="${esc(p.name)}" width="1600" height="1066"></div>
       <div class="body buybox">
         <p class="meta-line">${esc(productMeta(p))}</p>
-        <h1>${esc(p.name)}</h1>
+        <h1>${titleHTML(p.name)}</h1>
         <p class="summary">${esc(p.desc || p.whatItDoes || "")}</p>
         <p class="price" id="qvPrice"></p>
         <p class="price-note">+ ${fmt(AURORA.deliveryFee)} delivery anywhere in Bangladesh</p>
         ${variantPicker(sizes, size, "qvSizes")}
-        <div class="buy-row">
+        ${hasPrice(p) ? `<div class="buy-row">
           ${qtyControl("qv")}
           <button class="btn" id="qvAdd">Add to bag</button>
-        </div>
+        </div>` : askButton(p)}
         <a class="link full-link" href="product.html?p=${p.slug}">View full details ${icon("arrow")}</a>
       </div>`;
     const refresh = () => {
-      $("#qvPrice").textContent = fmt(sizePrice(p.slug, size));
-      $("#qvQty").textContent = qty;
+      $("#qvPrice").textContent = hasPrice(p) ? fmt(sizePrice(p.slug, size)) : "Price on request";
       $("#qvSizesLabel").textContent = sizeLabel(p.slug, size);
+      if ($("#qvQty")) $("#qvQty").textContent = qty;
     };
     bindVariantPicker($("#qvSizes"), ml => { size = ml; refresh(); });
+    refresh();
+    Layer.open($("#quickView"));
+    if (!hasPrice(p)) return;
     $("#qvDec").addEventListener("click", () => { if (qty > 1) qty--; refresh(); });
     $("#qvInc").addEventListener("click", () => { qty++; refresh(); });
     $("#qvAdd").addEventListener("click", () => { this.close(); Cart.add(p.slug, size, qty); });
-    refresh();
-    Layer.open($("#quickView"));
   },
   close() { Layer.close($("#quickView")); }
 };
 
 function variantPicker(sizes, current, id) {
+  if (sizes.length === 1) return `<div class="opt-head"${sizes[0].label ? "" : " hidden"}>Size <span id="${id}Label">${esc(sizes[0].label)}</span></div><div id="${id}" hidden></div>`;
   return `
     <div class="opt-head">Size <span id="${id}Label">${sizes.find(s => s.ml === current)?.label || ""}</span></div>
     <div class="variant-grid" id="${id}" role="radiogroup" aria-label="Size">
       ${sizes.map(s => `
         <button class="variant" role="radio" aria-checked="${s.ml === current}" data-ml="${s.ml}">
-          ${s.label}<small>${fmt(s.price)}</small>
+          ${s.label}${typeof s.price === "number" ? `<small>${fmt(s.price)}</small>` : ""}
         </button>`).join("")}
     </div>`;
 }
@@ -611,7 +631,7 @@ const CUSTOMER_KEY = "aurora_customer_v1";
 const Cart = {
   view: "bag",     /* bag | checkout | done */
   lastOrder: null,
-  items() { return store.get(CART_KEY, []).filter(i => bySlug(i.slug)); },
+  items() { return store.get(CART_KEY, []).filter(i => bySlug(i.slug) && hasPrice(bySlug(i.slug))); },
   save(items) { store.set(CART_KEY, items); this.update(); },
   count() { return this.items().reduce((n, i) => n + i.qty, 0); },
   subtotal() { return this.items().reduce((n, i) => n + sizePrice(i.slug, i.size) * i.qty, 0); },
@@ -635,7 +655,7 @@ const Cart = {
 
   orderText(c) {
     const items = this.items();
-    const lines = items.map(i => `• ${bySlug(i.slug).name} — ${sizeLabel(i.slug, i.size)} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk`);
+    const lines = items.map(i => `• ${bySlug(i.slug).name}${sizeLabel(i.slug, i.size) ? ` — ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk`);
     return [
       "Hello AuroraBD! I would like to place an order:",
       ...lines,
@@ -775,7 +795,7 @@ const Cart = {
           </div>
         </form>
         <div class="order-sum">
-          ${items.map(i => `<div><span>${esc(bySlug(i.slug).name)} · ${sizeLabel(i.slug, i.size)} × ${i.qty}</span><span>${fmt(sizePrice(i.slug, i.size) * i.qty)}</span></div>`).join("")}
+          ${items.map(i => `<div><span>${esc(bySlug(i.slug).name)}${sizeLabel(i.slug, i.size) ? ` · ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty}</span><span>${fmt(sizePrice(i.slug, i.size) * i.qty)}</span></div>`).join("")}
           <div><span>Delivery</span><span>${fmt(AURORA.deliveryFee)}</span></div>
           <div class="grand"><span>Total · Cash on delivery</span><span>${fmt(total)}</span></div>
         </div>
@@ -793,7 +813,7 @@ const Cart = {
           <a href="product.html?p=${p.slug}"><img src="${thumbSrc(p.images[0])}" alt="${esc(p.name)}" width="76" height="76" loading="lazy"></a>
           <div>
             <h3><a href="product.html?p=${p.slug}">${esc(p.name)}</a></h3>
-            <p class="v">${sizeLabel(i.slug, i.size)} · ${fmt(sizePrice(i.slug, i.size))}</p>
+            <p class="v">${[sizeLabel(i.slug, i.size), fmt(sizePrice(i.slug, i.size))].filter(Boolean).join(" · ")}</p>
             <div class="qty">
               <button data-dec="${idx}" aria-label="Decrease quantity of ${esc(p.name)}">${icon("minus")}</button>
               <span>${i.qty}</span>
@@ -827,7 +847,7 @@ function renderFooter() {
       <div class="container inner">
         <div>
           <h2 class="h3">New arrivals, first.</h2>
-          <p>Be the first to hear about new scents and our skincare launch. No spam — just Aurora news.</p>
+          <p>Be the first to hear about new scents, skincare and offers. No spam — just Aurora news.</p>
         </div>
         <form class="nl-form" id="nlForm">
           <label class="sr-only" for="nlEmail">Email address</label>
@@ -907,7 +927,7 @@ function initHome() {
     { slug: "perfume-women", title: "For Women", image: "miss-dior" },
     { slug: "perfume-unisex", title: "Unisex", image: "lattafa-khamrah" },
     hasSkincare()
-      ? { slug: "skincare", title: "Skincare", image: PRODUCTS.find(isSkincare).images[0] }
+      ? { slug: "skincare", title: "Skincare", image: (bySlug(SKINCARE_FEATURED[0]) || PRODUCTS.find(isSkincare)).images[0] }
       : { slug: "skincare", title: "Skincare", mono: "Skin", note: "Everyday essentials — launching soon." }
   ].map(categoryCard).join("");
 
@@ -934,6 +954,16 @@ function initHome() {
     return `<a href="${collUrl(`skincare-${k.key}`)}"><span class="n">0${i + 1}</span><span><strong>${k.label}</strong><small>${n ? `${n} product${n === 1 ? "" : "s"}` : "Coming soon"}</small></span></a>`;
   }).join("") + `<a href="${collUrl("skincare")}"><span class="n">→</span><span><strong>All Skincare</strong><small>Browse the range</small></span></a>`;
   if (hasSkincare()) $("#skinStatus")?.remove();
+
+  /* Skincare products row */
+  const skinRow = $("#skinProducts");
+  if (skinRow && hasSkincare()) {
+    const picks = [...SKINCARE_FEATURED.map(bySlug).filter(Boolean), ...PRODUCTS.filter(p => isSkincare(p) && !SKINCARE_FEATURED.includes(p.slug))];
+    skinRow.innerHTML = productGrid(picks, { reveal: false });
+    const wrap = skinRow.closest(".slider-wrap");
+    wrap.hidden = false;
+    initSlider(wrap);
+  }
 
   /* Skincare discovery — only appears once skincare products list skin types / concerns */
   const disc = $("#skinDiscovery");
@@ -1153,20 +1183,23 @@ function initCollection() {
     { key: "gender", title: "Gender", of: p => isPerfume(p) && p.tag ? [p.tag] : [], label: k => GENDER[k], order: ["For Him", "For Her", "Unisex"] },
     { key: "type", title: "Type", of: p => isPerfume(p) ? [perfumeType(p)] : [], label: k => PERFUME_TYPES[k] },
     { key: "scent", title: "Scent family", of: scentKeys, label: k => labelOf(SCENT_FAMILIES, k), order: SCENT_FAMILIES.map(f => f.key) },
-    { key: "skincareType", title: "Product type", of: p => isSkincare(p) && p.skincareType ? [p.skincareType] : [], label: k => labelOf(SKINCARE_CATEGORIES, k) },
+    { key: "skincareType", title: "Product type", of: p => isSkincare(p) ? skinCats(p) : [], label: k => labelOf(SKINCARE_CATEGORIES, k), order: SKINCARE_CATEGORIES.map(k => k.key) },
+    { key: "brand", title: "Brand", of: p => isSkincare(p) && p.brand ? [p.brand] : [], label: k => k, sortAlpha: true },
     { key: "skin", title: "Skin type", of: p => p.skinTypes || [], label: k => labelOf(SKIN_TYPES, k) },
     { key: "concern", title: "Concern", of: p => p.concerns || [], label: k => labelOf(SKIN_CONCERNS, k) },
-    { key: "price", title: "Price", of: p => [String(fromPrice(p))], label: k => `From ${fmt(+k)}`, order: null, sortNum: true }
+    { key: "price", title: "Price", of: p => hasPrice(p) ? [String(fromPrice(p))] : [], label: k => `From ${fmt(+k)}`, order: null, sortNum: true }
   ].map(f => {
     const counts = new Map();
     base.forEach(p => f.of(p).forEach(v => counts.set(v, (counts.get(v) || 0) + 1)));
     let keys = [...counts.keys()];
     if (f.order) keys.sort((a, b) => f.order.indexOf(a) - f.order.indexOf(b));
     if (f.sortNum) keys.sort((a, b) => a - b);
+    if (f.sortAlpha) keys.sort((a, b) => a.localeCompare(b));
     return { ...f, keys, counts };
   }).filter(f => f.keys.length > 1 || (f.key === "scent" && f.keys.length > 0 && !slug.startsWith("scent-") && base.length > 3));
 
-  const allSizes = [...new Map(base.flatMap(productSizes).map(s => [s.ml, s])).values()].sort((a, b) => a.ml - b.ml);
+  /* The size picker only makes sense where every product shares the perfume size list */
+  const allSizes = !base.every(isPerfume) ? [] : [...new Map(base.flatMap(productSizes).map(s => [s.ml, s])).values()].sort((a, b) => a.ml - b.ml);
   const state = { sel: Object.fromEntries(facetDefs.map(f => [f.key, new Set()])), size: null, sort: params.get("sort") || "featured" };
   const presetSize = +params.get("size");
   if (allSizes.some(s => s.ml === presetSize)) state.size = presetSize;
@@ -1196,7 +1229,7 @@ function initCollection() {
       return !s.size || f.of(p).some(v => s.has(v));
     }));
     if (state.size) list = list.filter(p => productSizes(p).some(s => s.ml === state.size));
-    const priceOf = p => state.size ? productSizes(p).find(s => s.ml === state.size).price : fromPrice(p);
+    const priceOf = p => (state.size ? productSizes(p).find(s => s.ml === state.size).price : fromPrice(p)) ?? Infinity;
     const newRank = p => p.badge === "New" ? 0 : 1;
     switch (state.sort) {
       case "price-asc": list.sort((a, b) => priceOf(a) - priceOf(b)); break;
@@ -1252,16 +1285,16 @@ function initCollection() {
 }
 
 function emptyCollection(col) {
-  const isSkin = col.group === "skincare";
+  const isSkin = col.group === "skincare" && !hasSkincare();
   return `
     <div class="empty-state">
       <div class="mono" aria-hidden="true">${isSkin ? "Skin" : "Soon"}</div>
       <h2>${isSkin ? "Aurora skincare is on its way" : `${col.title} is coming soon`}</h2>
       <p>${isSkin
         ? "We're preparing our first skincare essentials. Leave your email below or message us on WhatsApp to hear first when they launch."
-        : "We're adding this to the Aurora range soon. In the meantime, explore our perfume collection."}</p>
+        : `We're adding this to the Aurora range soon. In the meantime, explore our ${col.group === "skincare" ? "skincare" : "perfume"} collection.`}</p>
       <div class="actions">
-        <a class="btn" href="${collUrl("perfume")}">Shop perfume</a>
+        <a class="btn" href="${collUrl(col.group === "skincare" ? "skincare" : "perfume")}">Shop ${col.group === "skincare" ? "skincare" : "perfume"}</a>
         ${waConfigured() ? `<a class="btn btn-outline" href="${waLink(`Hello AuroraBD! Please let me know when ${col.title} is available.`)}" target="_blank" rel="noopener">${icon("whatsapp")} Notify me</a>` : ""}
       </div>
     </div>`;
@@ -1284,7 +1317,7 @@ function initProduct() {
   document.body.dataset.group = groupSlug;
   $$(".nav-link").forEach(a => a.classList.toggle("is-current", a.getAttribute("href") === collUrl(groupSlug)));
 
-  const metaDesc = `${p.name} by AuroraBD — ${(p.desc || p.whatItDoes || "").replace(/\s+—\s+/g, ", ")} From ${fmt(fromPrice(p))}, delivered anywhere in Bangladesh. Cash on delivery.`;
+  const metaDesc = `${p.name} at AuroraBD — ${(p.desc || p.whatItDoes || "").replace(/\s+—\s+/g, ", ")} ${hasPrice(p) ? `From ${fmt(fromPrice(p))}, d` : "D"}elivered anywhere in Bangladesh. Cash on delivery.`;
   document.title = `${p.name} — ${skinProduct ? "Skincare" : "Perfume"} | AuroraBD`;
   $('meta[name="description"]')?.setAttribute("content", metaDesc);
   $('meta[property="og:title"]')?.setAttribute("content", `${p.name} — AuroraBD`);
@@ -1295,7 +1328,7 @@ function initProduct() {
   let qty = 1;
 
   const genderColl = { "For Him": "perfume-men", "For Her": "perfume-women", "Unisex": "perfume-unisex" }[p.tag];
-  const crumbColl = skinProduct ? (p.skincareType ? `skincare-${p.skincareType}` : "skincare") : (genderColl || "perfume");
+  const crumbColl = skinProduct ? (skinCats(p)[0] ? `skincare-${skinCats(p)[0]}` : "skincare") : (genderColl || "perfume");
   $("#pdpCrumbs").innerHTML = `
     <li><a href="index.html">Home</a></li>
     <li><a href="${collUrl(groupSlug)}">${skinProduct ? "Skincare" : "Perfume"}</a></li>
@@ -1307,28 +1340,28 @@ function initProduct() {
       <button class="${i === 0 ? "is-on" : ""}" data-img="${img}" aria-label="Show image ${i + 1}"><img src="${thumbSrc(img)}" alt="" width="84" height="84"></button>`).join("")}
     </div>` : "";
   const summary = skinProduct
-    ? (p.suitableFor || "")
+    ? (p.summary || p.suitableFor || "")
     : [p.family && `${p.family} fragrance`, GENDER[p.tag] && `for ${GENDER[p.tag] === "Unisex" ? "everyone" : GENDER[p.tag].toLowerCase()}`].filter(Boolean).join(" ") +
       (p.top?.length ? `. Opens with ${p.top.slice(0, 2).join(" and ").toLowerCase()}.` : ".");
 
   wrap.innerHTML = `
     <div class="gallery">
-      <div class="gallery-main"><img id="pdpImg" src="${fullSrc(p.images[0])}" alt="${esc(p.name)} by Aurora" width="1600" height="1066" fetchpriority="high"></div>
+      <div class="gallery-main${skinProduct ? " square" : ""}"><img id="pdpImg" src="${fullSrc(p.images[0])}" alt="${esc(p.name)}${skinProduct ? "" : " by Aurora"}" width="1600" height="1066" fetchpriority="high"></div>
       ${thumbs}
     </div>
     <div class="buybox">
       <p class="meta-line">${skinProduct ? esc(productMeta(p)) : `${esc(GENDER[p.tag] || "")}${p.badge ? ` · ${p.badge === "Bestseller" ? "Best Seller" : esc(p.badge)}` : ""}`}</p>
-      <h1>${esc(p.name)}</h1>
+      <h1>${titleHTML(p.name)}</h1>
       <p class="summary">${esc(summary)}</p>
       <p class="price" id="pdpPrice"></p>
       <p class="price-note">Cash on delivery · + ${fmt(AURORA.deliveryFee)} delivery anywhere in Bangladesh</p>
       ${variantPicker(sizes, size, "pdpSizes")}
-      <div class="opt-head">Quantity</div>
+      ${hasPrice(p) ? `<div class="opt-head">Quantity</div>
       <div class="buy-row">
         ${qtyControl("pdp")}
         <button class="btn" id="addBtn">Add to bag</button>
       </div>
-      <button class="btn btn-outline btn-block" id="buyNow">Buy now</button>
+      <button class="btn btn-outline btn-block" id="buyNow">Buy now</button>` : `<div id="addBtn">${askButton(p)}</div>`}
       <ul class="assurance">
         <li>${icon("truck")}<span><strong>Delivery across Bangladesh</strong>Flat ${fmt(AURORA.deliveryFee)}, delivered to your door.</span></li>
         <li>${icon("cash")}<span><strong>Cash on delivery</strong>Pay when your order arrives. We confirm every order by phone first.</span></li>
@@ -1346,7 +1379,8 @@ function initProduct() {
       row("Key ingredients", chipList(p.keyIngredients)),
       row("How to use", p.howToUse && `<p class="prose" style="font-size:1.15rem">${esc(p.howToUse)}</p>`),
       row("Suitable for", p.suitableFor && `<p>${esc(p.suitableFor)}</p>`),
-      row("Skin type", chipList((p.skinTypes || []).map(k => labelOf(SKIN_TYPES, k))))
+      row("Skin type", chipList((p.skinTypes || []).map(k => labelOf(SKIN_TYPES, k)))),
+      row("Helps with", chipList((p.concerns || []).map(k => labelOf(SKIN_CONCERNS, k))))
     ].join("");
   } else {
     const notes = [["Top notes", "First impression", p.top], ["Heart notes", "After 15–30 minutes", p.heart], ["Base notes", "The lasting dry-down", p.base]]
@@ -1360,14 +1394,17 @@ function initProduct() {
   }
   $("#pdpDetails").innerHTML = details;
 
+  const priced = hasPrice(p);
   const refresh = () => {
+    $("#pdpSizesLabel").textContent = sizeLabel(p.slug, size);
+    if (!priced) { $("#pdpPrice").textContent = "Price on request"; $("#barPrice").textContent = "Price on request"; return; }
     const each = sizePrice(p.slug, size);
     $("#pdpPrice").innerHTML = qty > 1 ? `${fmt(each * qty)} <small class="muted" style="font-size:13px">(${qty} × ${fmt(each)})</small>` : fmt(each);
     $("#pdpQty").textContent = qty;
-    $("#pdpSizesLabel").textContent = sizeLabel(p.slug, size);
-    $("#barPrice").textContent = `${sizeLabel(p.slug, size)} · ${fmt(each)}`;
+    $("#barPrice").textContent = [sizeLabel(p.slug, size), fmt(each)].filter(Boolean).join(" · ");
   };
   bindVariantPicker($("#pdpSizes"), ml => { size = ml; refresh(); });
+  if (priced) {
   $("#pdpInc").addEventListener("click", () => { qty++; refresh(); });
   $("#pdpDec").addEventListener("click", () => { if (qty > 1) qty--; refresh(); });
   $("#addBtn").addEventListener("click", () => Cart.add(p.slug, size, qty));
@@ -1375,6 +1412,7 @@ function initProduct() {
     Cart.add(p.slug, size, qty);
     Cart.view = "checkout"; Cart.update();
   });
+  }
   $$(".gallery-thumbs button").forEach(b => b.addEventListener("click", () => {
     $$(".gallery-thumbs button").forEach(x => x.classList.remove("is-on"));
     b.classList.add("is-on");
@@ -1384,7 +1422,8 @@ function initProduct() {
   /* Sticky mobile buy bar appears once the main button scrolls away */
   const bar = $("#buyBar");
   $("#barName").textContent = p.name;
-  $("#barAdd").addEventListener("click", () => Cart.add(p.slug, size, qty));
+  if (priced) $("#barAdd").addEventListener("click", () => Cart.add(p.slug, size, qty));
+  else if (waConfigured()) $("#barAdd").outerHTML = `<a class="btn" id="barAdd" href="${askLink(p)}" target="_blank" rel="noopener">Ask price</a>`;
   if ("IntersectionObserver" in window) {
     new IntersectionObserver(([en]) => bar.classList.toggle("is-on", !en.isIntersecting && en.boundingClientRect.top < 0))
       .observe($("#addBtn"));
@@ -1404,8 +1443,8 @@ function initProduct() {
   ld.textContent = JSON.stringify({
     "@context": "https://schema.org", "@type": "Product",
     name: p.name, description: p.desc || p.whatItDoes || "", image: new URL(fullSrc(p.images[0]), location.href).href,
-    brand: { "@type": "Brand", name: "Aurora" },
-    offers: { "@type": "AggregateOffer", priceCurrency: "BDT", lowPrice: fromPrice(p), highPrice: Math.max(...sizes.map(s => s.price)), offerCount: sizes.length }
+    brand: { "@type": "Brand", name: p.brand || "Aurora" },
+    ...(priced ? { offers: { "@type": "AggregateOffer", priceCurrency: "BDT", lowPrice: fromPrice(p), highPrice: Math.max(...sizes.map(s => s.price)), offerCount: sizes.length } } : {})
   });
   document.head.appendChild(ld);
 }

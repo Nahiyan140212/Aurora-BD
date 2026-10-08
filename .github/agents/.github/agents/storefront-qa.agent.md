@@ -11,7 +11,8 @@ This is a static site with no build step. Review changes for:
   a valid badge (Bestseller / New / null), complete top/heart/base notes, and image
   slugs that match files in images/products/full/ and images/products/thumb/.
   Skincare entries use `category: "skincare"`, a `skincareType` key from
-  SKINCARE_CATEGORIES and their own `variants`.
+  SKINCARE_CATEGORIES (or a list of them), a `brand`, a `size`, and a numeric `price` or
+  `null` (shown as "Price on request" — never sold through the cart).
 - **Pricing**: perfume prices must come from AURORA.sizes
   (10ml ৳300 · 15ml ৳400 · 30ml ৳650 · 50ml ৳850 · 100ml ৳1,700, delivery ৳100) or
   PREMIUM_PRICES (৳350 · ৳450 · ৳750 · ৳1,000 · ৳1,800) — flag any hardcoded price in
