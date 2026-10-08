@@ -246,7 +246,7 @@ const PRODUCTS = [
     top: ["Red Berries", "Plum", "Jasmine"],
     heart: ["Red Berries", "Plum", "Jasmine"],
     base: ["Amber", "Musk", "Sandalwood", "Vanilla", "Patchouli"],
-    images: ["vampire-blood", "vampire-blood-2"]
+    images: ["vampire-blood"]
   },
   {
     slug: "juicy-apple",
