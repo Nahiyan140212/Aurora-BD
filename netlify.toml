@@ -8,12 +8,13 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# CSS/JS (prices live in js/data.js) — always revalidate so edits show up immediately
 [[headers]]
   for = "/css/*"
   [headers.values]
-    Cache-Control = "public, max-age=604800"
+    Cache-Control = "public, max-age=0, must-revalidate"
 
 [[headers]]
   for = "/js/*"
   [headers.values]
-    Cache-Control = "public, max-age=604800"
+    Cache-Control = "public, max-age=0, must-revalidate"
