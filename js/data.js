@@ -23,6 +23,9 @@ const AURORA = {
    badge: "Bestseller" | "New" | null
    images: file slugs inside images/products/{thumb|full}/
    prices: optional { ml: price } overrides for AURORA.sizes */
+/* Higher price list for premium scents (set via a product's `prices`) */
+const PREMIUM_PRICES = { 10: 350, 15: 450, 30: 750, 50: 1000, 100: 1800 };
+
 const PRODUCTS = [
   {
     slug: "creed-aventus",
@@ -34,7 +37,7 @@ const PRODUCTS = [
     top: ["Bergamot", "Pineapple", "Black Currant", "Lemon"],
     heart: ["Birch", "Musk", "Oakmoss"],
     base: ["Ambergris", "Citrus", "Aventus Accord"],
-    prices: { 10: 350 },
+    prices: PREMIUM_PRICES,
     images: ["creed-aventus"]
   },
   {
@@ -47,6 +50,7 @@ const PRODUCTS = [
     top: ["Grapefruit", "Lemon", "Mint", "Pink Pepper"],
     heart: ["Ginger", "Nutmeg", "Jasmine"],
     base: ["Incense", "Cedar", "Sandalwood", "Patchouli"],
+    prices: PREMIUM_PRICES,
     images: ["bleu-de-chanel"]
   },
   {
@@ -71,6 +75,7 @@ const PRODUCTS = [
     top: ["Mint", "Green Apple", "Lemon"],
     heart: ["Tonka Bean", "Geranium", "Ambroxan"],
     base: ["Vanilla", "Vetiver", "Oakmoss", "Cedar"],
+    prices: PREMIUM_PRICES,
     images: ["versace-eros"]
   },
   {
@@ -155,6 +160,7 @@ const PRODUCTS = [
     top: ["Citron", "Bergamot", "Orange"],
     heart: ["Black Tea", "Ginger", "Neroli"],
     base: ["Ambrox", "Guaiac Wood"],
+    prices: PREMIUM_PRICES,
     images: ["imagination"]
   },
   {
@@ -167,6 +173,7 @@ const PRODUCTS = [
     top: ["Pink Pepper", "Juniper", "Violet"],
     heart: ["Cinnamon", "Lavender", "Sage"],
     base: ["Vanilla", "Tonka Bean", "Amber", "Suede"],
+    prices: PREMIUM_PRICES,
     images: ["stronger-with-you-intensely"]
   },
   {
@@ -263,6 +270,7 @@ const PRODUCTS = [
     top: ["Marshmallow", "Strawberry", "Musk"],
     heart: ["Raspberry", "Ambroxan", "Lemon"],
     base: ["Sweet Rose", "Cinnamon", "Fresh Greens"],
+    prices: PREMIUM_PRICES,
     images: ["marshmallow-blush"]
   },
   {
@@ -275,6 +283,7 @@ const PRODUCTS = [
     top: ["Cream", "Coconut", "Praline"],
     heart: ["Musk", "Lavender", "Pear"],
     base: ["Vanilla", "Musk", "Amber"],
+    prices: PREMIUM_PRICES,
     images: ["cloud"]
   },
   {
@@ -287,6 +296,7 @@ const PRODUCTS = [
     top: ["Neroli", "Bergamot", "Pepper"],
     heart: ["Tuberose", "Almond", "Jasmine"],
     base: ["Tonka Bean", "Cacao Pod", "Vanilla"],
+    prices: PREMIUM_PRICES,
     images: ["good-girl"]
   },
   {
@@ -311,6 +321,7 @@ const PRODUCTS = [
     top: ["Pear", "Melon", "Magnolia", "Peach"],
     heart: ["Jasmine", "Damask Rose", "Ylang-Ylang"],
     base: ["Musk", "Vanilla", "Cedar"],
+    prices: PREMIUM_PRICES,
     images: ["dior-jadore"]
   },
   {
