@@ -177,6 +177,43 @@ const PRODUCTS = [
     images: ["stronger-with-you-intensely"]
   },
   {
+    slug: "dior-sauvage",
+    name: "Dior Sauvage",
+    tag: "For Him",
+    family: "Aromatic Fougère",
+    badge: "New",
+    desc: "Peppery bergamot over lavender and a warm wash of ambroxan — raw, fresh and unmistakably masculine.",
+    top: ["Bergamot", "Pepper", "Pink Pepper"],
+    heart: ["Sichuan Pepper", "Lavender", "Ambroxan"],
+    base: ["Amber", "Musk", "Fresh Spicy", "Aromatic"],
+    prices: PREMIUM_PRICES,
+    images: ["dior-sauvage"]
+  },
+  {
+    slug: "nautica-voyage",
+    name: "Nautica Voyage",
+    tag: "For Him",
+    family: "Aromatic Aquatic",
+    badge: "New",
+    desc: "Green apple and lotus carried on a sea breeze, settling into soft musk and woods — easy, clean and fresh all day.",
+    top: ["Green Notes", "Apple", "Lotus"],
+    heart: ["Musk", "Mimosa", "Cedar"],
+    base: ["Musk", "Amber", "Moss", "Woody"],
+    images: ["nautica-voyage"]
+  },
+  {
+    slug: "9pm",
+    name: "9PM",
+    tag: "For Him",
+    family: "Amber Vanilla",
+    badge: "New",
+    desc: "Apple and cinnamon melt into tonka, lavender and amber — a warm, sweet evening scent made for after dark.",
+    top: ["Vanilla", "Apple", "Cinnamon"],
+    heart: ["Tonka Bean", "Lavender", "Amber"],
+    base: ["Vanilla", "Amber", "Warm Spicy", "Cinnamon"],
+    images: ["9pm"]
+  },
+  {
     slug: "hawas-ice",
     name: "Hawas Ice",
     tag: "Unisex",
@@ -274,6 +311,30 @@ const PRODUCTS = [
     images: ["marshmallow-blush"]
   },
   {
+    slug: "pacific-chill",
+    name: "Pacific Chill",
+    tag: "Unisex",
+    family: "Citrus Aromatic",
+    badge: "New",
+    desc: "Juicy apricot, citron and cool mint over a soft bed of musk and amber — bright, breezy and effortlessly fresh.",
+    top: ["Apricot", "Citron", "Orange", "Lemon", "Mint Basil"],
+    heart: ["Citrus", "Fresh Spicy", "Aromatic", "Green"],
+    base: ["Musk", "Amber", "Moss", "Woody"],
+    images: ["pacific-chill"]
+  },
+  {
+    slug: "wulong-cha",
+    name: "Wulong Cha",
+    tag: "Unisex",
+    family: "Citrus Tea",
+    badge: "New",
+    desc: "Oolong tea brightened with bergamot and mandarin, softened by fig and clean musk — calm, refined and quietly addictive.",
+    top: ["Bergamot", "Oolong Tea", "Orange", "Mandarin Orange"],
+    heart: ["Fig", "Musk"],
+    base: ["Musk", "Fresh Spicy", "Aromatic", "Citrus"],
+    images: ["wulong-cha"]
+  },
+  {
     slug: "cloud",
     name: "Cloud",
     tag: "For Her",
@@ -359,6 +420,19 @@ const PRODUCTS = [
     heart: ["Jasmine", "Violet"],
     base: ["Musk", "Amber", "Dry Woods"],
     images: ["burberry-her"]
+  },
+  {
+    slug: "miss-dior",
+    name: "Miss Dior",
+    tag: "For Her",
+    family: "Floral",
+    badge: "New",
+    desc: "Rose and apricot wrapped in vanilla, with powdery iris and peony on soft musk — romantic, elegant and endlessly feminine.",
+    top: ["Vanilla", "Rose", "Apricot"],
+    heart: ["Iris", "Peony"],
+    base: ["Musk"],
+    prices: PREMIUM_PRICES,
+    images: ["miss-dior"]
   }
 ];
 
