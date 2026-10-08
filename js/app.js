@@ -9,7 +9,9 @@ const fmt = n => AURORA.currency + n.toLocaleString("en-US");
 const bySlug = slug => PRODUCTS.find(p => p.slug === slug);
 const thumbSrc = slug => `images/products/thumb/${slug}.jpg`;
 const fullSrc = slug => `images/products/full/${slug}.jpg`;
-const sizePrice = ml => AURORA.sizes.find(s => s.ml === ml)?.price ?? 0;
+/* A product's optional `prices` ({ ml: price }) overrides the shared list */
+const productSizes = p => AURORA.sizes.map(s => ({ ml: s.ml, price: p?.prices?.[s.ml] ?? s.price }));
+const sizePrice = (slug, ml) => productSizes(bySlug(slug)).find(s => s.ml === ml)?.price ?? 0;
 const waConfigured = () => !/X/i.test(AURORA.whatsapp);
 const waLink = text => `https://wa.me/${AURORA.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`;
 
@@ -25,7 +27,7 @@ const saveCart = cart => {
   renderCartItems();
 };
 const cartCount = () => getCart().reduce((n, i) => n + i.qty, 0);
-const cartSubtotal = () => getCart().reduce((n, i) => n + sizePrice(i.size) * i.qty, 0);
+const cartSubtotal = () => getCart().reduce((n, i) => n + sizePrice(i.slug, i.size) * i.qty, 0);
 
 function addToCart(slug, size, qty) {
   const cart = getCart();
@@ -51,7 +53,7 @@ function removeItem(idx) {
 function orderText() {
   const lines = getCart().map(i => {
     const p = bySlug(i.slug);
-    return `• ${p.name} — ${i.size}ml × ${i.qty} = ${sizePrice(i.size) * i.qty} Tk`;
+    return `• ${p.name} — ${i.size}ml × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk`;
   });
   return [
     "Hello AuroraBD! I would like to place an order:",
@@ -124,7 +126,7 @@ function renderCartItems() {
       <img src="${thumbSrc(p.images[0])}" alt="${p.name}">
       <div>
         <h4>${p.name}</h4>
-        <div class="ci-size">${i.size}ml · ${fmt(sizePrice(i.size))}</div>
+        <div class="ci-size">${i.size}ml · ${fmt(sizePrice(i.slug, i.size))}</div>
         <div class="ci-qty">
           <button data-dec="${idx}" aria-label="Decrease quantity">−</button>
           <span>${i.qty}</span>
@@ -132,7 +134,7 @@ function renderCartItems() {
         </div>
       </div>
       <div class="ci-right">
-        <div class="ci-line">${fmt(sizePrice(i.size) * i.qty)}</div>
+        <div class="ci-line">${fmt(sizePrice(i.slug, i.size) * i.qty)}</div>
         <button class="ci-remove" data-rm="${idx}">Remove</button>
       </div>
     </div>`;
@@ -185,7 +187,7 @@ function cardHTML(p, i = 0) {
       ${badge}
       <h3>${p.name}</h3>
       <p class="card-fam">${p.family} · ${p.tag}</p>
-      <p class="card-price">From ${fmt(AURORA.sizes[0].price)}</p>
+      <p class="card-price">From ${fmt(productSizes(p)[0].price)}</p>
     </div>
   </a>`;
 }
@@ -357,14 +359,14 @@ function initProduct() {
 
       <p class="opt-label">Select Size — <b id="sizeLabel">50ml</b></p>
       <div class="size-select" id="sizeSelect">
-        ${AURORA.sizes.map(s => `
+        ${productSizes(p).map(s => `
           <button class="size-opt ${s.ml === size ? "on" : ""}" data-ml="${s.ml}">
             <span class="s-ml">${s.ml}ml</span>
             <span class="s-tk">${fmt(s.price)}</span>
           </button>`).join("")}
       </div>
 
-      <p class="pdp-price"><span id="pdpPrice">${fmt(sizePrice(size))}</span> <small>+ ${fmt(AURORA.deliveryFee)} delivery</small></p>
+      <p class="pdp-price"><span id="pdpPrice">${fmt(sizePrice(p.slug, size))}</span> <small>+ ${fmt(AURORA.deliveryFee)} delivery</small></p>
 
       <div class="buy-row">
         <div class="qty">
@@ -385,11 +387,11 @@ function initProduct() {
 
   const refresh = () => {
     $("#sizeLabel").textContent = `${size}ml`;
-    $("#pdpPrice").textContent = fmt(sizePrice(size) * qty);
+    $("#pdpPrice").textContent = fmt(sizePrice(p.slug, size) * qty);
     $("#qOut").textContent = qty;
     const wa = $("#waOrder");
     if (wa) wa.href = waLink(
-      `Hello AuroraBD! I would like to order:\n• ${p.name} — ${size}ml × ${qty} = ${sizePrice(size) * qty} Tk\nDelivery: ${AURORA.deliveryFee} Tk\nTotal: ${sizePrice(size) * qty + AURORA.deliveryFee} Tk`
+      `Hello AuroraBD! I would like to order:\n• ${p.name} — ${size}ml × ${qty} = ${sizePrice(p.slug, size) * qty} Tk\nDelivery: ${AURORA.deliveryFee} Tk\nTotal: ${sizePrice(p.slug, size) * qty + AURORA.deliveryFee} Tk`
     );
   };
 

@@ -21,7 +21,8 @@ const AURORA = {
 
 /* tag: "For Him" | "For Her" | "Unisex"
    badge: "Bestseller" | "New" | null
-   images: file slugs inside images/products/{thumb|full}/ */
+   images: file slugs inside images/products/{thumb|full}/
+   prices: optional { ml: price } overrides for AURORA.sizes */
 const PRODUCTS = [
   {
     slug: "creed-aventus",
@@ -33,6 +34,7 @@ const PRODUCTS = [
     top: ["Bergamot", "Pineapple", "Black Currant", "Lemon"],
     heart: ["Birch", "Musk", "Oakmoss"],
     base: ["Ambergris", "Citrus", "Aventus Accord"],
+    prices: { 10: 350 },
     images: ["creed-aventus"]
   },
   {
