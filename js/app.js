@@ -441,7 +441,7 @@ function productCard(p, opts = {}) {
       <a class="pcard-media" href="product.html?p=${p.slug}" tabindex="-1" aria-hidden="true">
         <img src="${thumbSrc(p.images[0])}" alt="" loading="lazy" decoding="async" width="720" height="480">
         ${alt}
-        ${p.badge ? `<span class="pcard-badge">${p.badge === "Bestseller" ? "Best Seller" : esc(p.badge)}</span>` : ""}
+        ${p.badge ? `<span class="pcard-badge${p.badge === "New" ? " new" : ""}">${p.badge === "Bestseller" ? "Best Seller" : esc(p.badge)}</span>` : ""}
       </a>
       <div class="pcard-tools">
         <button class="tool qv" data-quickview="${p.slug}" aria-label="Quick view ${esc(p.name)}">${icon("eye")}<span>Quick view</span></button>
@@ -516,7 +516,7 @@ const sliderNav = () => `
 function categoryCard({ slug, title, image, mono, note }) {
   const n = countOf(slug);
   const media = image
-    ? `<div class="media"><img src="${thumbSrc(image)}" alt="" loading="lazy" width="720" height="480"></div>`
+    ? `<div class="media"><img src="${thumbSrc(image)}" alt="" loading="lazy" width="720" height="480"><span class="go">Shop now ${icon("arrow")}</span></div>`
     : `<div class="media tonal"><span class="mono" aria-hidden="true">${mono || title[0]}</span><p>${note || ""}</p></div>`;
   return `
     <a class="cat-card" href="${collUrl(slug)}" data-reveal>
@@ -898,20 +898,7 @@ function initReveal(root = document) {
    Page: Home
    ============================================================ */
 function initHome() {
-  /* Hero crossfade */
-  const slides = $$(".hero-media img"), dots = $$(".hero-dots button");
-  if (slides.length > 1) {
-    let cur = 0, timer;
-    const go = n => {
-      slides[cur].classList.remove("is-on"); dots[cur]?.classList.remove("is-on");
-      cur = (n + slides.length) % slides.length;
-      slides[cur].classList.add("is-on"); dots[cur]?.classList.add("is-on");
-      dots.forEach((d, i) => d.setAttribute("aria-current", String(i === cur)));
-    };
-    const play = () => { clearInterval(timer); timer = setInterval(() => go(cur + 1), 5200); };
-    dots.forEach((d, i) => d.addEventListener("click", () => { go(i); play(); }));
-    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) play();
-  }
+  initHeroSlideshow();
 
   /* Shop by category */
   const cats = $("#homeCategories");
@@ -928,56 +915,25 @@ function initHome() {
   const best = $("#bestSellers");
   if (best) { best.innerHTML = productGrid(collectionProducts("best-sellers")); initSlider(best.closest(".slider-wrap")); }
 
-  /* Featured perfumes with Men / Women / Unisex tabs */
-  const tabs = $$("#featuredTabs .tab"), fgrid = $("#featuredGrid"), fmore = $("#featuredMore");
-  if (fgrid) {
-    const pick = slug => {
-      const list = collectionProducts(slug);
-      const ranked = [...list].sort((a, b) => rank(a) - rank(b));
-      fgrid.innerHTML = productGrid(ranked.slice(0, 8));
-      fmore.href = collUrl(slug);
-      const who = { "perfume-men": "men's", "perfume-women": "women's", "perfume-unisex": "unisex" }[slug];
-      fmore.innerHTML = `View all ${who} perfume (${list.length}) ${icon("arrow")}`;
-      initReveal(fgrid);
-    };
-    const rank = p => { const i = FEATURED_SLUGS.indexOf(p.slug); return i < 0 ? (p.badge === "Bestseller" ? 50 : p.badge === "New" ? 60 : 70) : i; };
-    tabs.forEach(t => t.addEventListener("click", () => {
-      tabs.forEach(x => { x.setAttribute("aria-selected", "false"); x.tabIndex = -1; });
-      t.setAttribute("aria-selected", "true"); t.tabIndex = 0;
-      pick(t.dataset.coll);
-    }));
-    $("#featuredTabs")?.addEventListener("keydown", e => {
-      const i = tabs.findIndex(t => t.getAttribute("aria-selected") === "true");
-      const n = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : null;
-      if (n === null) return;
-      const t = tabs[(n + tabs.length) % tabs.length]; t.click(); t.focus();
-    });
-    pick(tabs[0].dataset.coll);
+  /* New arrivals */
+  const fresh = $("#newArrivals");
+  if (fresh) {
+    const list = collectionProducts("new-arrivals");
+    if (list.length) fresh.innerHTML = productGrid(list.slice(0, 8));
+    else fresh.closest("section").hidden = true;
   }
+
+  initSizePicker();
+  initFeaturedTabs();
+  initScentFinder();
 
   /* Skincare category tiles */
   const skin = $("#skinCats");
-  if (skin) skin.innerHTML = SKINCARE_CATEGORIES.slice(0, 8).map((k, i) => {
+  if (skin) skin.innerHTML = SKINCARE_CATEGORIES.slice(0, 7).map((k, i) => {
     const n = countOf(`skincare-${k.key}`);
     return `<a href="${collUrl(`skincare-${k.key}`)}"><span class="n">0${i + 1}</span><span><strong>${k.label}</strong><small>${n ? `${n} product${n === 1 ? "" : "s"}` : "Coming soon"}</small></span></a>`;
   }).join("") + `<a href="${collUrl("skincare")}"><span class="n">→</span><span><strong>All Skincare</strong><small>Browse the range</small></span></a>`;
-  const skinStatus = $("#skinStatus");
-  if (skinStatus && hasSkincare()) skinStatus.remove();
-
-  /* Find your signature scent */
-  const scents = $("#scentGrid");
-  if (scents) scents.innerHTML = `
-    <div class="scent-card intro" data-reveal>
-      <h3>Not sure where to start?</h3>
-      <p>Pick the mood you love. Every Aurora product page lists its top, heart and base notes.</p>
-      ${waConfigured() ? `<a class="link" style="color:var(--bg);border-color:#6b645b" href="${waLink("Hello AuroraBD! Can you help me choose a perfume?")}" target="_blank" rel="noopener">Ask us on WhatsApp ${icon("arrow")}</a>` : ""}
-    </div>` + SCENT_FAMILIES.map(f => ({ f, n: countOf(`scent-${f.key}`) })).filter(x => x.n).map(({ f, n }) => `
-    <a class="scent-card" href="${collUrl(`scent-${f.key}`)}" data-reveal>
-      <span class="swatch" style="background:${f.color}" aria-hidden="true"></span>
-      <h3>${f.label}</h3>
-      <p>${f.desc}</p>
-      <span class="count">${n} scent${n === 1 ? "" : "s"} ${icon("arrow")}</span>
-    </a>`).join("");
+  if (hasSkincare()) $("#skinStatus")?.remove();
 
   /* Skincare discovery — only appears once skincare products list skin types / concerns */
   const disc = $("#skinDiscovery");
@@ -989,6 +945,168 @@ function initHome() {
       $("#skinChips").innerHTML = chips.map(([slug, label]) => `<a class="pill" href="${collUrl(slug)}">${label}</a>`).join("");
     }
   }
+}
+
+/* Hero: autoplay with progress bars, arrows, swipe, pause on hover / hidden tab */
+function initHeroSlideshow() {
+  const hero = $(".hero");
+  const slides = hero ? $$(".hero-slide", hero) : [];
+  if (slides.length < 2) return;
+  const bars = $$(".hero-bars button", hero), count = $(".hero-count", hero);
+  const ms = 6000, reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  hero.style.setProperty("--hero-ms", `${ms}ms`);
+  let cur = 0, timer = null, paused = false;
+
+  const schedule = () => {
+    clearTimeout(timer);
+    if (!paused && !reduce) timer = setTimeout(() => show(cur + 1), ms);
+  };
+  const show = n => {
+    cur = (n + slides.length) % slides.length;
+    slides.forEach((s, i) => {
+      s.classList.toggle("is-on", i === cur);
+      s.setAttribute("aria-hidden", String(i !== cur));
+      $$("a, button", s).forEach(el => { el.tabIndex = i === cur ? 0 : -1; });
+    });
+    bars.forEach((b, i) => {
+      b.classList.toggle("is-done", i < cur);
+      b.classList.remove("is-on");
+      b.setAttribute("aria-current", String(i === cur));
+    });
+    void bars[cur]?.offsetWidth;          /* restart the progress animation */
+    bars[cur]?.classList.add("is-on");
+    if (count) count.textContent = `${String(cur + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}`;
+    schedule();
+  };
+  const pause = on => { paused = on; hero.classList.toggle("is-paused", on); if (on) clearTimeout(timer); else schedule(); };
+
+  $("[data-hero-prev]", hero)?.addEventListener("click", () => show(cur - 1));
+  $("[data-hero-next]", hero)?.addEventListener("click", () => show(cur + 1));
+  bars.forEach((b, i) => b.addEventListener("click", () => show(i)));
+  hero.addEventListener("mouseenter", () => pause(true));
+  hero.addEventListener("mouseleave", () => pause(false));
+  hero.addEventListener("focusin", () => pause(true));
+  hero.addEventListener("focusout", e => { if (!hero.contains(e.relatedTarget)) pause(false); });
+  document.addEventListener("visibilitychange", () => pause(document.hidden));
+  hero.addEventListener("keydown", e => {
+    if (e.key === "ArrowLeft") show(cur - 1);
+    if (e.key === "ArrowRight") show(cur + 1);
+  });
+  let x0 = null;
+  hero.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
+  hero.addEventListener("touchend", e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 45) show(cur + (dx < 0 ? 1 : -1));
+    x0 = null;
+  });
+  show(0);
+}
+
+/* Size & price picker — prices come straight from AURORA.sizes / PREMIUM_PRICES */
+function initSizePicker() {
+  const wrap = $("#sizePicker");
+  if (!wrap) return;
+  const premium = typeof PREMIUM_PRICES === "object" ? PREMIUM_PRICES : null;
+  const notes = {
+    10: "A travel-friendly size — the easiest way to try a new scent.",
+    15: "A little more, to live with a scent for a few weeks.",
+    30: "A comfortable everyday size.",
+    50: "A generous size for your signature scent.",
+    100: "The lowest price per ml."
+  };
+  wrap.innerHTML = AURORA.sizes.map((s, i) =>
+    `<button role="radio" aria-checked="${i === 0}" data-ml="${s.ml}">${s.ml}<small>ml</small></button>`).join("");
+  const draw = ml => {
+    const reg = AURORA.sizes.find(s => s.ml === ml).price;
+    $("#sizeRegular").textContent = fmt(reg);
+    $("#sizeRegularPer").textContent = `${fmt(Math.round(reg / ml))} per ml`;
+    if (premium?.[ml]) {
+      $("#sizePremium").textContent = fmt(premium[ml]);
+      $("#sizePremiumPer").textContent = `${fmt(Math.round(premium[ml] / ml))} per ml`;
+    }
+    $("#sizeNote").textContent = notes[ml] || "";
+    const cta = $("#sizeCta");
+    cta.href = `shop.html?c=perfume&size=${ml}`;
+    cta.textContent = `Shop ${ml}ml perfumes`;
+  };
+  const btns = $$("button", wrap);
+  btns.forEach(b => b.addEventListener("click", () => {
+    btns.forEach(x => x.setAttribute("aria-checked", "false"));
+    b.setAttribute("aria-checked", "true");
+    draw(+b.dataset.ml);
+  }));
+  if (!premium) $("#sizePremiumBox")?.remove();
+  draw(AURORA.sizes[0].ml);
+}
+
+/* Featured perfumes with Men / Women / Unisex tabs */
+function initFeaturedTabs() {
+  const tabs = $$("#featuredTabs .tab"), fgrid = $("#featuredGrid"), fmore = $("#featuredMore");
+  if (!fgrid) return;
+  const rank = p => { const i = FEATURED_SLUGS.indexOf(p.slug); return i < 0 ? (p.badge === "Bestseller" ? 50 : p.badge === "New" ? 60 : 70) : i; };
+  const pick = slug => {
+    const list = collectionProducts(slug);
+    fgrid.innerHTML = productGrid([...list].sort((a, b) => rank(a) - rank(b)).slice(0, 8), { reveal: false });
+    replay(fgrid, "fade-swap");
+    const who = { "perfume-men": "men's", "perfume-women": "women's", "perfume-unisex": "unisex" }[slug];
+    fmore.href = collUrl(slug);
+    fmore.innerHTML = `View all ${who} perfume (${list.length}) ${icon("arrow")}`;
+  };
+  tabs.forEach(t => t.addEventListener("click", () => {
+    tabs.forEach(x => { x.setAttribute("aria-selected", "false"); x.tabIndex = -1; });
+    t.setAttribute("aria-selected", "true"); t.tabIndex = 0;
+    pick(t.dataset.coll);
+  }));
+  arrowKeys($("#featuredTabs"), tabs);
+  pick(tabs[0].dataset.coll);
+}
+
+/* Find your signature scent — pick a family, see its perfumes in place */
+function initScentFinder() {
+  const chipsEl = $("#finderChips");
+  if (!chipsEl) return;
+  const fams = SCENT_FAMILIES.map(f => ({ f, list: collectionProducts(`scent-${f.key}`) })).filter(x => x.list.length);
+  if (!fams.length) { chipsEl.closest("section").hidden = true; return; }
+  chipsEl.innerHTML = fams.map(({ f }, i) => `
+    <button role="tab" aria-selected="${i === 0}" data-key="${f.key}" tabindex="${i === 0 ? 0 : -1}">
+      <span class="sw" style="background:${f.color}" aria-hidden="true"></span>${f.label}
+    </button>`).join("");
+  const info = $("#finderInfo"), track = $("#finderTrack");
+  const pick = key => {
+    const { f, list } = fams.find(x => x.f.key === key);
+    info.style.backgroundColor = f.color;
+    info.innerHTML = `
+      <h3 class="h3">${f.label}</h3>
+      <p>${f.desc}</p>
+      <span class="count">${list.length} perfume${list.length === 1 ? "" : "s"} in this family</span>
+      <a class="btn" href="${collUrl(`scent-${f.key}`)}">Shop ${f.label.toLowerCase()}</a>`;
+    track.innerHTML = productGrid(list, { reveal: false });
+    track.scrollLeft = 0;
+    replay(info, "fade-swap"); replay(track, "fade-swap");
+    track.dispatchEvent(new Event("scroll"));
+  };
+  const btns = $$("button", chipsEl);
+  btns.forEach(b => b.addEventListener("click", () => {
+    btns.forEach(x => { x.setAttribute("aria-selected", "false"); x.tabIndex = -1; });
+    b.setAttribute("aria-selected", "true"); b.tabIndex = 0;
+    pick(b.dataset.key);
+  }));
+  arrowKeys(chipsEl, btns);
+  initSlider(track.closest(".slider-wrap"));
+  pick(fams[0].f.key);
+}
+
+/* Restart a one-shot CSS animation */
+const replay = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+/* Left / right arrow keys move between tabs */
+function arrowKeys(list, items) {
+  list?.addEventListener("keydown", e => {
+    const i = items.findIndex(t => t.getAttribute("aria-selected") === "true");
+    const n = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : null;
+    if (n === null) return;
+    const t = items[(n + items.length) % items.length]; t.click(); t.focus();
+  });
 }
 
 /* ============================================================
@@ -1050,6 +1168,8 @@ function initCollection() {
 
   const allSizes = [...new Map(base.flatMap(productSizes).map(s => [s.ml, s])).values()].sort((a, b) => a.ml - b.ml);
   const state = { sel: Object.fromEntries(facetDefs.map(f => [f.key, new Set()])), size: null, sort: params.get("sort") || "featured" };
+  const presetSize = +params.get("size");
+  if (allSizes.some(s => s.ml === presetSize)) state.size = presetSize;
 
   const facetsHTML = idp => facetDefs.map(f => `
     <fieldset class="facet">
