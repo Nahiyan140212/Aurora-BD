@@ -3,105 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fragrance — AuroraBD Perfume</title>
-  <meta name="description" content="Discover this AuroraBD fragrance — scent notes, sizes from 10ml to 100ml, and home delivery all over Bangladesh.">
+  <title>Product — AuroraBD</title>
+  <meta name="description" content="Discover this Aurora product — sizes, notes and details, with flat ৳100 delivery across Bangladesh and cash on delivery.">
+  <meta property="og:title" content="AuroraBD">
+  <meta property="og:type" content="product">
+  <meta property="og:image" content="images/products/full/creed-aventus.jpg">
+  <meta name="theme-color" content="#fbf9f5">
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body data-page="product">
 
-  <div class="topbar">Home delivery all over Bangladesh — only ৳100 &nbsp;·&nbsp; Cash on Delivery</div>
+  <div id="site-header"></div>
 
-  <header class="site-header">
-    <div class="container nav">
-      <button class="menu-btn" id="menuBtn" aria-label="Open menu"><span></span></button>
-      <nav class="nav-links left" aria-label="Primary">
-        <a href="index.html">Home</a>
-        <a href="shop.html" class="active">Shop</a>
-        <a href="about.html">About</a>
-      </nav>
-      <a class="brand" href="index.html" aria-label="AuroraBD home">
-        <span class="brand-name"><span class="spark">✦</span>AURORA<span class="bd">BD</span><span class="spark">✦</span></span>
-        <span class="brand-tag">A Signature of Confidence</span>
-      </a>
-      <div class="nav-links right">
-        <a href="contact.html">Contact</a>
-        <button class="cart-btn cart-open" aria-label="Open shopping bag">Bag <span class="cart-count">0</span></button>
-      </div>
+  <main id="main">
+    <div class="container">
+      <nav aria-label="Breadcrumb"><ol class="crumbs" id="pdpCrumbs"></ol></nav>
+      <div class="pdp" id="pdp"></div>
+      <div class="details" id="pdpDetails"></div>
     </div>
-  </header>
 
-  <div class="mobile-nav" id="mobileNav">
-    <button class="close-x" aria-label="Close menu">×</button>
-    <a href="index.html">Home</a>
-    <a href="shop.html">Shop</a>
-    <a href="about.html">About</a>
-    <a href="contact.html">Contact</a>
+    <section class="section" aria-labelledby="rel-title">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">You may also like</span>
+            <h2 class="h2" id="rel-title">More to discover</h2>
+          </div>
+          <a class="link hide-sm" id="relatedMore" href="shop.html">View all <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a>
+        </div>
+        <div class="grid cols-4" id="relatedGrid"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Sticky add-to-bag bar (mobile) -->
+  <div class="buy-bar" id="buyBar">
+    <div class="info"><strong id="barName"></strong><span id="barPrice"></span></div>
+    <button class="btn" id="barAdd">Add to bag</button>
   </div>
 
-  <section class="section" style="padding-top:2.6rem">
-    <div class="container">
-      <p class="crumbs"><a href="index.html">Home</a> &nbsp;/&nbsp; <a href="shop.html">Shop</a> &nbsp;/&nbsp; Fragrance</p>
-      <div class="pdp" id="pdp"></div>
-    </div>
-  </section>
+  <div id="site-footer"></div>
 
-  <section class="section" style="padding-top:0">
-    <div class="container">
-      <div class="section-head split" data-reveal>
-        <div>
-          <span class="eyebrow">Pairs beautifully</span>
-          <h2 class="section-title">You may also <em>love</em></h2>
-        </div>
-        <a class="btn btn-ghost dark-on-light" href="shop.html">View All</a>
-      </div>
-      <div class="grid" id="relatedGrid"></div>
-    </div>
-  </section>
-
-  <footer class="site-footer">
-    <div class="container footer-grid">
-      <div class="f-brand">
-        <span class="brand-name"><span class="spark">✦</span>AURORA<span class="bd">BD</span><span class="spark">✦</span></span>
-        <p>Premium, long-lasting fragrances crafted with passion, quality and trust — a signature of confidence, made in Bangladesh.</p>
-      </div>
-      <div>
-        <h4>Explore</h4>
-        <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="shop.html">Shop</a></li>
-          <li><a href="about.html">Our Story</a></li>
-          <li><a href="contact.html">Contact</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Collections</h4>
-        <ul>
-          <li><a href="shop.html?cat=him">For Him</a></li>
-          <li><a href="shop.html?cat=her">For Her</a></li>
-          <li><a href="shop.html?cat=unisex">Unisex</a></li>
-          <li><a href="shop.html?cat=new">New Arrivals</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Customer Care</h4>
-        <ul>
-          <li>Home delivery nationwide — ৳100</li>
-          <li>Cash on delivery available</li>
-          <li><a href="contact.html">Order help &amp; questions</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="container footer-bottom">
-      <span>© <span class="jsYear">2025</span> AuroraBD — A Signature of Confidence</span>
-      <span>Crafted with <span class="spark">✦</span> in Bangladesh</span>
-    </div>
-  </footer>
-
-  <script src="js/data.js?v=2"></script>
-  <script src="js/app.js?v=2"></script>
+  <script src="js/data.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
 </body>
 </html>

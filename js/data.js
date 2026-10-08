@@ -10,6 +10,19 @@ const AURORA = {
   currency: "৳", /* ৳ */
   deliveryFee: 100,
   deliveryNote: "Home delivery all over Bangladesh — flat ৳100",
+  /* Short messages for the announcement bar at the very top */
+  announcements: [
+    "Flat ৳100 home delivery across Bangladesh",
+    "Cash on delivery",
+    "Order easily on WhatsApp"
+  ],
+  /* Social profile links — fill in to show icons in the footer.
+     Leave "" to hide an icon. */
+  social: {
+    facebook: "https://www.facebook.com/share/14oEX4QvB2i/",
+    instagram: "",
+    tiktok: ""
+  },
   sizes: [
     { ml: 10, price: 300 },
     { ml: 15, price: 400 },
@@ -22,7 +35,26 @@ const AURORA = {
 /* tag: "For Him" | "For Her" | "Unisex"
    badge: "Bestseller" | "New" | null
    images: file slugs inside images/products/{thumb|full}/
-   prices: optional { ml: price } overrides for AURORA.sizes */
+   prices: optional { ml: price } overrides for AURORA.sizes
+
+   Optional fields (all products):
+   category: "perfume" (default) | "skincare"
+   variants: [{ ml, price, label? }] — replaces AURORA.sizes entirely
+             (use for skincare, e.g. [{ ml: 50, price: 890 }])
+
+   Optional perfume fields:
+   type: "spray" (default) | "oil" | "roll-on"
+   wear: ["Daily", "Office", "Date Night", "Evening", "Special Occasion"]
+
+   Skincare fields (category: "skincare"):
+   skincareType: a key from SKINCARE_CATEGORIES (e.g. "serum")
+   skinTypes:    keys from SKIN_TYPES (e.g. ["oily", "combination"])
+   concerns:     keys from SKIN_CONCERNS (e.g. ["hydration"])
+   whatItDoes:   short paragraph
+   keyIngredients: ["Niacinamide", ...]
+   howToUse:     short paragraph
+   suitableFor:  short sentence
+   (no tag / family / notes needed for skincare) */
 /* Higher price list for premium scents (set via a product's `prices`) */
 const PREMIUM_PRICES = { 10: 350, 15: 450, 30: 750, 50: 1000, 100: 1800 };
 
@@ -436,8 +468,58 @@ const PRODUCTS = [
   }
 ];
 
-/* Curated order for the homepage "Bestsellers" grid */
+/* Curated order for "Featured" — the homepage Featured Perfumes tabs
+   and the Featured collection */
 const FEATURED_SLUGS = [
   "creed-aventus", "good-girl", "hawas-ice", "lattafa-khamrah",
   "cloud", "club-de-nuit-intense", "vampire-blood", "bleu-de-chanel"
+];
+
+/* ============================================================
+   Taxonomy — drives menus, collections and filters.
+   Categories with no products yet show as "Soon" automatically.
+   ============================================================ */
+
+/* Scent families for "Find your signature scent". A perfume belongs
+   to a family when its `family` text or its notes match `match`. */
+const SCENT_FAMILIES = [
+  { key: "fresh",  label: "Fresh",  color: "#dfe7e4", desc: "Clean, airy and aquatic — easy to wear from morning to night.",
+    match: { family: /fresh|aquatic|fougère|tea/i } },
+  { key: "citrus", label: "Citrus", color: "#efe6c9", desc: "Bright bergamot, lemon and orange — an instant lift.",
+    match: { family: /citrus/i } },
+  { key: "woody",  label: "Woody",  color: "#ddd0c0", desc: "Cedar, sandalwood and vetiver — grounded and confident.",
+    match: { family: /woody/i } },
+  { key: "sweet",  label: "Sweet",  color: "#f0dfd6", desc: "Vanilla, tonka and gourmand accords — warm and addictive.",
+    match: { family: /sweet|gourmand|vanilla/i } },
+  { key: "floral", label: "Floral", color: "#f1e1e4", desc: "Rose, jasmine and white flowers — soft, elegant and romantic.",
+    match: { family: /floral/i } },
+  { key: "oud",    label: "Oud",    color: "#d6cbc0", desc: "Rich agarwood with smoke and resin — deep and memorable.",
+    match: { notes: /\boud\b|agarwood/i } },
+  { key: "spicy",  label: "Spicy",  color: "#ead6c6", desc: "Pepper, cinnamon and cardamom — bold, warm character.",
+    match: { family: /spicy/i } }
+];
+
+const SKINCARE_CATEGORIES = [
+  { key: "cleanser",    label: "Cleanser" },
+  { key: "toner",       label: "Toner" },
+  { key: "serum",       label: "Serum" },
+  { key: "moisturizer", label: "Moisturizer" },
+  { key: "sunscreen",   label: "Sunscreen" },
+  { key: "eye-care",    label: "Eye Care" },
+  { key: "body-care",   label: "Body Care" }
+];
+
+const SKIN_TYPES = [
+  { key: "oily",        label: "Oily Skin" },
+  { key: "dry",         label: "Dry Skin" },
+  { key: "combination", label: "Combination Skin" },
+  { key: "sensitive",   label: "Sensitive Skin" },
+  { key: "normal",      label: "Normal Skin" }
+];
+
+const SKIN_CONCERNS = [
+  { key: "brightening", label: "Brightening" },
+  { key: "hydration",   label: "Hydration" },
+  { key: "anti-aging",  label: "Anti-Aging" },
+  { key: "acne",        label: "Acne & Blemishes" }
 ];

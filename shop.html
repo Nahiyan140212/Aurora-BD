@@ -3,114 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shop All Fragrances — AuroraBD Perfume</title>
-  <meta name="description" content="Browse AuroraBD's full collection of premium, long-lasting perfumes — for him, for her and unisex. From ৳300 with ৳100 delivery all over Bangladesh.">
+  <title>Shop All Products — AuroraBD</title>
+  <meta name="description" content="Shop Aurora perfumes for men, women and unisex, plus skincare. Sizes from 10ml, flat ৳100 delivery across Bangladesh, cash on delivery.">
+  <meta name="theme-color" content="#fbf9f5">
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=3">
 </head>
-<body data-page="shop">
+<body data-page="collection">
 
-  <div class="topbar">Home delivery all over Bangladesh — only ৳100 &nbsp;·&nbsp; Cash on Delivery</div>
+  <div id="site-header"></div>
 
-  <header class="site-header">
-    <div class="container nav">
-      <button class="menu-btn" id="menuBtn" aria-label="Open menu"><span></span></button>
-      <nav class="nav-links left" aria-label="Primary">
-        <a href="index.html">Home</a>
-        <a href="shop.html" class="active">Shop</a>
-        <a href="about.html">About</a>
-      </nav>
-      <a class="brand" href="index.html" aria-label="AuroraBD home">
-        <span class="brand-name"><span class="spark">✦</span>AURORA<span class="bd">BD</span><span class="spark">✦</span></span>
-        <span class="brand-tag">A Signature of Confidence</span>
-      </a>
-      <div class="nav-links right">
-        <a href="contact.html">Contact</a>
-        <button class="cart-btn cart-open" aria-label="Open shopping bag">Bag <span class="cart-count">0</span></button>
-      </div>
-    </div>
-  </header>
+  <main id="main">
+    <div class="container" id="collectionHead"></div>
 
-  <div class="mobile-nav" id="mobileNav">
-    <button class="close-x" aria-label="Close menu">×</button>
-    <a href="index.html">Home</a>
-    <a href="shop.html">Shop</a>
-    <a href="about.html">About</a>
-    <a href="contact.html">Contact</a>
-  </div>
-
-  <section class="page-hero">
-    <div class="container">
-      <span class="eyebrow center" style="justify-content:center">The full wardrobe</span>
-      <h1>The <em class="gold-text">Collection</em></h1>
-      <p>Twenty-seven signatures of confidence — every size, one honest price list.</p>
-    </div>
-  </section>
-
-  <section class="section" style="padding-top:3rem">
-    <div class="container">
-      <div class="shop-tools" data-reveal>
-        <div class="chips" role="tablist" aria-label="Filter fragrances">
-          <button class="chip" data-cat="all">All</button>
-          <button class="chip" data-cat="him">For Him</button>
-          <button class="chip" data-cat="her">For Her</button>
-          <button class="chip" data-cat="unisex">Unisex</button>
-          <button class="chip" data-cat="new">New</button>
-          <button class="chip" data-cat="best">Bestsellers</button>
+    <div class="container" style="padding-bottom:88px">
+      <div class="layout" id="collectionMain">
+        <aside class="filters-side" id="filtersSide" aria-label="Filters"></aside>
+        <div>
+          <div class="toolbar">
+            <button class="toolbar-btn mobile-only" id="openFilters">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+              Filter <span class="n"></span>
+            </button>
+            <span class="count" id="resultCount" aria-live="polite"></span>
+            <label class="sort">
+              <span class="lbl">Sort by</span>
+              <select id="sortSelect" aria-label="Sort products">
+                <option value="featured">Featured</option>
+                <option value="best">Best selling</option>
+                <option value="new">Newest</option>
+                <option value="price-asc">Price: low to high</option>
+                <option value="price-desc">Price: high to low</option>
+                <option value="name">Name: A–Z</option>
+              </select>
+            </label>
+          </div>
+          <div class="active-filters" id="activeFilters"></div>
+          <div class="grid cols-3" id="collectionGrid"></div>
         </div>
-        <label class="search-box">
-          <span class="s-ico">⌕</span>
-          <input id="shopSearch" type="search" placeholder="Search a scent or note…" aria-label="Search fragrances">
-        </label>
       </div>
-      <p class="opt-label" id="shopCount" style="margin-bottom:1.4rem"></p>
-      <div class="grid" id="shopGrid"></div>
     </div>
-  </section>
+  </main>
 
-  <footer class="site-footer">
-    <div class="container footer-grid">
-      <div class="f-brand">
-        <span class="brand-name"><span class="spark">✦</span>AURORA<span class="bd">BD</span><span class="spark">✦</span></span>
-        <p>Premium, long-lasting fragrances crafted with passion, quality and trust — a signature of confidence, made in Bangladesh.</p>
-      </div>
-      <div>
-        <h4>Explore</h4>
-        <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="shop.html">Shop</a></li>
-          <li><a href="about.html">Our Story</a></li>
-          <li><a href="contact.html">Contact</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Collections</h4>
-        <ul>
-          <li><a href="shop.html?cat=him">For Him</a></li>
-          <li><a href="shop.html?cat=her">For Her</a></li>
-          <li><a href="shop.html?cat=unisex">Unisex</a></li>
-          <li><a href="shop.html?cat=new">New Arrivals</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Customer Care</h4>
-        <ul>
-          <li>Home delivery nationwide — ৳100</li>
-          <li>Cash on delivery available</li>
-          <li><a href="contact.html">Order help &amp; questions</a></li>
-        </ul>
-      </div>
+  <!-- Mobile filter drawer -->
+  <aside class="drawer left" id="filterDrawer" aria-label="Filters" aria-hidden="true">
+    <div class="drawer-head">
+      <h2>Filter</h2>
+      <button class="icon-btn" data-close aria-label="Close filters"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
-    <div class="container footer-bottom">
-      <span>© <span class="jsYear">2025</span> AuroraBD — A Signature of Confidence</span>
-      <span>Crafted with <span class="spark">✦</span> in Bangladesh</span>
+    <div class="drawer-body" id="filterDrawerBody"></div>
+    <div class="drawer-foot" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="btn btn-outline" data-clear-filters>Clear</button>
+      <button class="btn" data-close>Show results</button>
     </div>
-  </footer>
+  </aside>
 
-  <script src="js/data.js?v=2"></script>
-  <script src="js/app.js?v=2"></script>
+  <div id="site-footer"></div>
+
+  <script src="js/data.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
 </body>
 </html>

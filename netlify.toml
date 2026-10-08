@@ -18,3 +18,19 @@
   for = "/js/*"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
+
+# Clean collection / product URLs, e.g. /collections/perfume-men, /products/creed-aventus
+[[redirects]]
+  from = "/collections"
+  to = "/shop.html"
+  status = 301
+
+[[redirects]]
+  from = "/collections/:slug"
+  to = "/shop.html?c=:slug"
+  status = 301
+
+[[redirects]]
+  from = "/products/:slug"
+  to = "/product.html?p=:slug"
+  status = 301

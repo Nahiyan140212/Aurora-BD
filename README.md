@@ -1,10 +1,10 @@
-# ✦ AURORABD ✦ — A Signature of Confidence
+# AURORA — A Signature of Confidence
 
-Official website for **AuroraBD**, a premium perfume brand from Bangladesh.
+Official website for **AuroraBD** — long-lasting fragrances and, soon, everyday skincare.
 Founder: Md. Jahirul Islam Fahim.
 
-Elegant, minimalist, luxury design in white · midnight black · deep gold — built as a
-**pure static site** (HTML/CSS/vanilla JS, zero build step) for maximum loading speed.
+A **pure static site** (HTML / CSS / vanilla JS, no build step), designed mobile-first in
+warm ivory, cream and charcoal with a single bronze accent.
 
 ## 🚀 Deploying on Netlify
 
@@ -12,62 +12,65 @@ Elegant, minimalist, luxury design in white · midnight black · deep gold — b
 2. Build command: *(leave empty)* — Publish directory: `.` (already set in `netlify.toml`).
 3. Deploy, then connect your domain.
 
+`netlify.toml` also adds clean URLs: `/collections/perfume-men` → the Perfume for Men
+collection, `/products/creed-aventus` → that product page.
+
 ## 🛒 How ordering works (WhatsApp — no payment gateway needed)
 
 Everything routes to AuroraBD's WhatsApp (number set in [`js/data.js`](js/data.js)):
 
-- **Product page → "Order Now on WhatsApp"** — opens a chat with the product,
-  size, quantity and total pre-filled.
-- **Cart → "Checkout via WhatsApp"** — customers add multiple items to their bag,
-  then the full order summary (items, subtotal, ৳100 delivery, total) opens in
-  WhatsApp, ready to send.
-- **Contact form → "Send via WhatsApp"** — the visitor's name, phone and message
-  open in a WhatsApp chat.
+- **Bag → Checkout** — the customer enters name, mobile number and address, then the full
+  order (items, subtotal, ৳100 delivery, total, customer details, "Cash on delivery")
+  opens in WhatsApp, ready to send. A confirmation screen explains the next steps.
+- **Product page → Buy now** — adds the item and jumps straight to checkout.
+- **Contact form → Send via WhatsApp** — name, phone and message open in a chat.
 
-Payment is cash on delivery, confirmed in the WhatsApp conversation.
+The **newsletter** signup submits to Netlify Forms (**Netlify → Forms**).
 
-To change the number, edit the first setting in `js/data.js`:
+## 🛍️ Managing products — everything is in `js/data.js`
 
-```js
-whatsapp: "+8801911247619",
-```
+**Settings** (`AURORA`): WhatsApp number, delivery fee, announcement-bar messages,
+social links (fill in `social.facebook` / `instagram` / `tiktok` to show icons), and the
+shared size/price list.
 
-The **newsletter** signup is the one exception — it submits to Netlify Forms
-(visible under **Netlify → Forms** after deploy; enable email notifications there).
+**Perfume** entries need: `slug`, `name`, `tag` (`For Him` / `For Her` / `Unisex`),
+`family`, `badge` (`Bestseller` / `New` / `null`), `desc`, `top` / `heart` / `base` notes
+and `images`. Optional: `prices: PREMIUM_PRICES` for premium pricing,
+`type: "oil"` or `"roll-on"` for perfume oils / roll-ons, and `wear: [...]` for the
+"When to wear" section.
 
-## 🛍️ Managing products
+**Skincare** entries use `category: "skincare"` plus `skincareType` (e.g. `"serum"`),
+`variants: [{ ml: 50, price: 890 }]`, and any of `skinTypes`, `concerns`, `whatItDoes`,
+`keyIngredients`, `howToUse`, `suitableFor`. The full field list is in the comment above
+`PRODUCTS`.
 
-All products live in [`js/data.js`](js/data.js) — each entry has a name, category
-(`For Him` / `For Her` / `Unisex`), fragrance family, badge (`Bestseller` / `New` / `null`),
-description, top/heart/base notes and image slug(s).
+Menus, collections and filters build themselves from this data. Empty categories
+(skincare, perfume oil, roll-on) show a "Soon" label and a coming-soon page until a product
+is added; the homepage "Shop by skin type" section appears automatically once skincare
+products list `skinTypes` / `concerns`.
 
-To add a product:
+**Images:** add `images/products/full/<slug>.jpg` (≈1600×1066) and
+`images/products/thumb/<slug>.jpg` (720×480). Cards crop to a centred square.
 
-1. Export/optimize its card image twice into
-   `images/products/full/<slug>.jpg` (1600px wide) and
-   `images/products/thumb/<slug>.jpg` (720px wide).
-2. Add an entry to `PRODUCTS` in `js/data.js`.
-
-Prices are uniform across the catalog and set once in `AURORA.sizes`
-(10ml ৳300 · 15ml ৳400 · 30ml ৳650 · 50ml ৳850 · 100ml ৳1,700, delivery ৳100).
+Default sizes: 10ml ৳300 · 15ml ৳400 · 30ml ৳650 · 50ml ৳850 · 100ml ৳1,700.
+Premium: ৳350 · ৳450 · ৳750 · ৳1,000 · ৳1,800. Delivery ৳100 flat.
 
 ## 📁 Structure
 
 ```
-index.html        Home — hero, collections, bestsellers, story, values, pricing
-shop.html         Full catalog with filters + search
-product.html      Product page (renders from ?p=<slug>)
-about.html        Brand story
-contact.html      Contact via WhatsApp, order info, FAQ
-css/style.css     Design system (white / midnight black / deep gold)
-js/data.js        ⚙️ Site config + product catalog  ← edit this one
-js/app.js         Cart, WhatsApp checkout, rendering, animations
-images/products/  Optimized product cards (thumb + full)
+index.html     Home — hero, categories, best sellers, featured perfumes, skincare,
+               scent families, why Aurora, story
+shop.html      Collection page — ?c=<collection>, with filters, sorting, size pricing
+product.html   Product page — ?p=<slug> (perfume and skincare layouts)
+contact.html   WhatsApp contact form, order info, FAQ
+about.html     Brand story
+help.html      My orders, shipping, payment, tracking, returns, privacy, terms
+css/style.css  Design system + all components
+js/data.js     ⚙️ Settings, catalog, scent families & skincare categories ← edit this
+js/app.js      Components (header, mega menu, search, cards, filters, cart, footer)
 ```
 
 ## 🖥️ Preview locally
 
-```bash
-python3 -m http.server 8000
-# open http://localhost:8000
-```
+Open `index.html` in a browser, or run any static server, e.g.
+`npx serve .` and open the printed address.

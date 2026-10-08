@@ -3,162 +3,111 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact — AuroraBD Perfume</title>
-  <meta name="description" content="Questions or orders? Contact AuroraBD — premium perfumes with ৳100 home delivery all over Bangladesh, cash on delivery available.">
+  <title>Contact Us — AuroraBD</title>
+  <meta name="description" content="Questions or orders? Contact AuroraBD on WhatsApp — flat ৳100 home delivery across Bangladesh, cash on delivery available.">
+  <meta name="theme-color" content="#fbf9f5">
   <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body data-page="contact">
 
-  <div class="topbar">Home delivery all over Bangladesh — only ৳100 &nbsp;·&nbsp; Cash on Delivery</div>
+  <div id="site-header"></div>
 
-  <header class="site-header">
-    <div class="container nav">
-      <button class="menu-btn" id="menuBtn" aria-label="Open menu"><span></span></button>
-      <nav class="nav-links left" aria-label="Primary">
-        <a href="index.html">Home</a>
-        <a href="shop.html">Shop</a>
-        <a href="about.html">About</a>
-      </nav>
-      <a class="brand" href="index.html" aria-label="AuroraBD home">
-        <span class="brand-name"><span class="spark">✦</span>AURORA<span class="bd">BD</span><span class="spark">✦</span></span>
-        <span class="brand-tag">A Signature of Confidence</span>
-      </a>
-      <div class="nav-links right">
-        <a href="contact.html" class="active">Contact</a>
-        <button class="cart-btn cart-open" aria-label="Open shopping bag">Bag <span class="cart-count">0</span></button>
-      </div>
-    </div>
-  </header>
-
-  <div class="mobile-nav" id="mobileNav">
-    <button class="close-x" aria-label="Close menu">×</button>
-    <a href="index.html">Home</a>
-    <a href="shop.html">Shop</a>
-    <a href="about.html">About</a>
-    <a href="contact.html">Contact</a>
-  </div>
-
-  <section class="page-hero">
+  <main id="main">
     <div class="container">
-      <span class="eyebrow center" style="justify-content:center">We're listening</span>
-      <h1>Get in <em class="gold-text">Touch</em></h1>
-      <p>A question, an order, or help choosing your signature — we're one message away.</p>
+      <nav aria-label="Breadcrumb"><ol class="crumbs"><li><a href="index.html">Home</a></li><li><span aria-current="page">Contact</span></li></ol></nav>
+      <header class="page-head">
+        <span class="eyebrow">We're here to help</span>
+        <h1 class="h1">Contact Us</h1>
+        <p class="lede">A question about an order, or help choosing your signature scent — send us a message and we'll reply on WhatsApp.</p>
+      </header>
     </div>
-  </section>
 
-  <section class="section">
-    <div class="container contact-grid">
-      <div data-reveal>
-        <span class="eyebrow">Send a message</span>
-        <h2 class="section-title" style="font-size:2rem">We reply <em>fast</em></h2>
-        <form id="contactForm">
-          <div class="form-field">
-            <label for="c-name">Your Name *</label>
-            <input id="c-name" name="name" required autocomplete="name">
-          </div>
-          <div class="form-field">
-            <label for="c-phone">Phone *</label>
-            <input id="c-phone" name="phone" type="tel" required autocomplete="tel" placeholder="01XXXXXXXXX">
-          </div>
-          <div class="form-field">
-            <label for="c-email">Email (optional)</label>
-            <input id="c-email" name="email" type="email" autocomplete="email">
-          </div>
-          <div class="form-field">
-            <label for="c-msg">Message *</label>
-            <textarea id="c-msg" name="message" required placeholder="Tell us which fragrance you're interested in…"></textarea>
-          </div>
-          <button class="btn btn-gold" type="submit">Send via WhatsApp ✦</button>
-          <p class="form-hint">Your message opens in WhatsApp — just press send.</p>
-        </form>
-      </div>
+    <section class="section">
+      <div class="container two-col">
+        <div>
+          <h2 class="h3" style="margin-bottom:6px">Send a message</h2>
+          <p class="muted small">Your message opens in WhatsApp — just press send.</p>
+          <form id="contactForm" class="form-grid" style="max-width:620px">
+            <div class="field">
+              <label for="c-name">Your name</label>
+              <input id="c-name" name="name" required autocomplete="name">
+            </div>
+            <div class="field">
+              <label for="c-phone">Mobile number</label>
+              <input id="c-phone" name="phone" type="tel" inputmode="tel" required autocomplete="tel" placeholder="01XXXXXXXXX">
+            </div>
+            <div class="field">
+              <label for="c-email">Email <span>(optional)</span></label>
+              <input id="c-email" name="email" type="email" autocomplete="email">
+            </div>
+            <div class="field">
+              <label for="c-msg">Message</label>
+              <textarea id="c-msg" name="message" required placeholder="Tell us which product you're interested in…"></textarea>
+            </div>
+            <div><button class="btn" type="submit">Send via WhatsApp</button></div>
+          </form>
+        </div>
 
-      <div class="info-panel" data-reveal style="--rd:.12s">
-        <h3>Order &amp; Delivery</h3>
-        <div class="info-row"><span class="i">✦</span><span><strong>Delivery:</strong> Home delivery all over Bangladesh — flat ৳100.</span></div>
-        <div class="info-row"><span class="i">✦</span><span><strong>Payment:</strong> Cash on delivery — pay when your perfume arrives.</span></div>
-        <div class="info-row"><span class="i">✦</span><span><strong>Sizes:</strong> 10ml ৳300 · 15ml ৳400 · 30ml ৳650 · 50ml ৳850 · 100ml ৳1,700. Premium scents: ৳350 · ৳450 · ৳750 · ৳1,000 · ৳1,800.</span></div>
-        <div class="info-row"><span class="i">✦</span><span><strong>Ordering:</strong> Add to your bag and checkout, or message us directly on WhatsApp.</span></div>
-        <a class="btn wa-btn btn-block" id="contactWa" href="#" target="_blank" rel="noopener" style="margin-top:1.4rem">Chat on WhatsApp</a>
+        <aside class="panel">
+          <h2>Order &amp; delivery</h2>
+          <ul class="info-list">
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 6.5h11v9h-11z"/><path d="M13.5 9.5h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg><div><strong>Delivery</strong><span>Home delivery all over Bangladesh — flat <span data-delivery-fee>৳100</span>.</span></div></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="1"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v5M18 9.5v5"/></svg><div><strong>Payment</strong><span>Cash on delivery — pay when your order arrives.</span></div></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3.5h6M10 3.5v3.2M14 3.5v3.2"/><rect x="6.5" y="6.7" width="11" height="14" rx="2"/><path d="M6.5 11.5h11"/></svg><div><strong>Perfume sizes</strong><span>10ml ৳300 · 15ml ৳400 · 30ml ৳650 · 50ml ৳850 · 100ml ৳1,700. Premium scents: ৳350 · ৳450 · ৳750 · ৳1,000 · ৳1,800.</span></div></li>
+            <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 12a8.5 8.5 0 0 1-12.6 7.4L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/></svg><div><strong>WhatsApp</strong><span data-whatsapp-number>+8801911247619</span></div></li>
+          </ul>
+          <a class="btn btn-block" style="margin-top:18px" data-wa href="#">Chat on WhatsApp</a>
+        </aside>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="section" style="padding-top:0">
-    <div class="container">
-      <div class="section-head" style="text-align:center" data-reveal>
-        <span class="eyebrow center" style="justify-content:center">Quick answers</span>
-        <h2 class="section-title">Frequently <em>asked</em></h2>
+    <section class="section cream" id="faq" aria-labelledby="faq-title">
+      <div class="container">
+        <div class="section-head center">
+          <span class="eyebrow">Quick answers</span>
+          <h2 class="h2" id="faq-title">Frequently Asked Questions</h2>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>How much is delivery, and where do you deliver? <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+            <p>We home-deliver everywhere in Bangladesh for a flat ৳100 — Dhaka to Teknaf, one price.</p>
+          </details>
+          <details>
+            <summary>Can I pay cash on delivery? <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+            <p>Yes. Order online and pay in cash when your order reaches you. We'll call to confirm every order first.</p>
+          </details>
+          <details>
+            <summary>How do I place an order? <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+            <p>Add products to your bag, tap Checkout and enter your name, mobile number and address. Your order opens in WhatsApp — press send, and we'll confirm it by phone.</p>
+          </details>
+          <details>
+            <summary>How long do Aurora fragrances last? <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+            <p>Aurora fragrances are made with premium-grade, long-lasting formulations. Performance varies by scent and skin, but longevity is the promise our brand is built on.</p>
+          </details>
+          <details>
+            <summary>Which sizes are available? <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+            <p>Every fragrance comes in 10ml (৳300), 15ml (৳400), 30ml (৳650), 50ml (৳850) and 100ml (৳1,700). Premium scents — Creed Aventus, Dior Sauvage, Bleu De Chanel, Versace Eros, Imagination, Stronger With You Intensely, Marshmallow Blush, Cloud, Good Girl, Dior J'adore and Miss Dior — are 10ml (৳350), 15ml (৳450), 30ml (৳750), 50ml (৳1,000) and 100ml (৳1,800). The 10ml is a perfect way to try a new scent.</p>
+          </details>
+          <details>
+            <summary>How do I choose my signature scent? <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+            <p>Browse by scent family — fresh, woody, sweet, floral and more — or by For Men, For Women and Unisex, and read the top, heart and base notes on every product page. Still unsure? Message us and we'll recommend one for your taste and occasion.</p>
+          </details>
+          <details>
+            <summary>When is Aurora skincare available? <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+            <p>Our first skincare essentials are coming soon. Subscribe below or message us on WhatsApp to hear first when they launch.</p>
+          </details>
+        </div>
       </div>
-      <div class="faq" data-reveal>
-        <details>
-          <summary>How much is delivery, and where do you deliver?</summary>
-          <p>We home-deliver everywhere in Bangladesh for a flat ৳100 — Dhaka to Teknaf, one price.</p>
-        </details>
-        <details>
-          <summary>Can I pay cash on delivery?</summary>
-          <p>Yes! Order online and pay in cash when your fragrance reaches your hand. We'll call to confirm every order first.</p>
-        </details>
-        <details>
-          <summary>How long do AuroraBD fragrances last?</summary>
-          <p>AuroraBD fragrances are made with premium-grade, long-lasting formulations. Performance varies by scent and skin, but longevity is the promise our brand is built on.</p>
-        </details>
-        <details>
-          <summary>Which sizes are available?</summary>
-          <p>Every fragrance comes in 10ml (৳300), 15ml (৳400), 30ml (৳650), 50ml (৳850) and 100ml (৳1,700). Premium scents — Creed Aventus, Dior Sauvage, Bleu De Chanel, Versace Eros, Imagination, Stronger With You Intensely, Marshmallow Blush, Cloud, Good Girl, Dior J'adore and Miss Dior — are 10ml (৳350), 15ml (৳450), 30ml (৳750), 50ml (৳1,000) and 100ml (৳1,800). The 10ml is a perfect way to try a new scent.</p>
-        </details>
-        <details>
-          <summary>How do I choose my signature scent?</summary>
-          <p>Browse by collection — For Him, For Her or Unisex — and read the top, heart and base notes on every product page. Still unsure? Message us and we'll recommend one for your taste and occasion.</p>
-        </details>
-      </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
-  <footer class="site-footer">
-    <div class="container footer-grid">
-      <div class="f-brand">
-        <span class="brand-name"><span class="spark">✦</span>AURORA<span class="bd">BD</span><span class="spark">✦</span></span>
-        <p>Premium, long-lasting fragrances crafted with passion, quality and trust — a signature of confidence, made in Bangladesh.</p>
-      </div>
-      <div>
-        <h4>Explore</h4>
-        <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="shop.html">Shop</a></li>
-          <li><a href="about.html">Our Story</a></li>
-          <li><a href="contact.html">Contact</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Collections</h4>
-        <ul>
-          <li><a href="shop.html?cat=him">For Him</a></li>
-          <li><a href="shop.html?cat=her">For Her</a></li>
-          <li><a href="shop.html?cat=unisex">Unisex</a></li>
-          <li><a href="shop.html?cat=new">New Arrivals</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Customer Care</h4>
-        <ul>
-          <li>Home delivery nationwide — ৳100</li>
-          <li>Cash on delivery available</li>
-          <li><a href="contact.html">Order help &amp; questions</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="container footer-bottom">
-      <span>© <span class="jsYear">2025</span> AuroraBD — A Signature of Confidence</span>
-      <span>Crafted with <span class="spark">✦</span> in Bangladesh</span>
-    </div>
-  </footer>
+  <div id="site-footer"></div>
 
-  <script src="js/data.js?v=2"></script>
-  <script src="js/app.js?v=2"></script>
+  <script src="js/data.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
 </body>
 </html>
