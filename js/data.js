@@ -4,8 +4,8 @@
    ============================================================ */
 
 const AURORA = {
-  /* AuroraBD's WhatsApp number — all orders and contact messages
-     open a chat here (country code + number) */
+  /* AuroraBD's WhatsApp number — contact messages and "ask us" links
+     open a chat here (country code + number). Orders are placed on the site. */
   whatsapp: "+8801911247619",
   currency: "৳", /* ৳ */
   deliveryFee: 100,
@@ -14,7 +14,7 @@ const AURORA = {
   announcements: [
     "Flat ৳100 home delivery across Bangladesh",
     "Cash on delivery",
-    "Order easily on WhatsApp"
+    "Easy online ordering"
   ],
   /* Skincare pre-order — products with a `preorderPrice` use it until `endsAt`
      (Bangladesh time), then go back to their regular `price` automatically.

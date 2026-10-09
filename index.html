@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600&family=Cinzel:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=9">
+  <link rel="stylesheet" href="css/style.css?v=11">
   <link rel="preload" as="image" href="images/products/full/creed-aventus.jpg">
 </head>
 <body data-page="home">
@@ -22,6 +22,12 @@
   <!-- Netlify form definition (hidden — enables newsletter submissions) -->
   <form name="newsletter" data-netlify="true" hidden>
     <input type="email" name="email">
+  </form>
+  <form name="order" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input name="bot-field"><input name="order_id"><input name="channel"><input name="name"><input name="phone">
+    <textarea name="address"></textarea><textarea name="note"></textarea><textarea name="items"></textarea>
+    <input name="subtotal"><input name="delivery"><input name="total"><input name="payment">
+    <input name="preorder"><input name="placed_at">
   </form>
 
   <div id="site-header"></div>
@@ -301,7 +307,7 @@
           <div class="why-item" data-reveal>
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 12a8.5 8.5 0 0 1-12.6 7.4L3.5 20.5l1.1-4.3A8.5 8.5 0 1 1 20.5 12z"/></svg>
             <h3>Personal service</h3>
-            <p>Pay cash on delivery. We confirm every order and help you choose on WhatsApp.</p>
+            <p>Order online in a minute and pay cash on delivery. Need help choosing? Ask us on WhatsApp.</p>
           </div>
         </div>
       </div>
@@ -327,7 +333,7 @@
 
   <div id="site-footer"></div>
 
-  <script src="js/data.js?v=9"></script>
-  <script src="js/app.js?v=9"></script>
+  <script src="js/data.js?v=11"></script>
+  <script src="js/app.js?v=11"></script>
 </body>
 </html>

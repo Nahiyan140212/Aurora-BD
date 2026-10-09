@@ -17,9 +17,11 @@ This is a static site with no build step. Review changes for:
   (10ml ৳300 · 15ml ৳400 · 30ml ৳650 · 50ml ৳850 · 100ml ৳1,700, delivery ৳100) or
   PREMIUM_PRICES (৳350 · ৳450 · ৳750 · ৳1,000 · ৳1,800) — flag any hardcoded price in
   HTML that doesn't match these.
-- **WhatsApp checkout (js/app.js, Cart)**: the order message must list every item with
-  name, size, quantity and line total, then subtotal, ৳100 delivery, total, the customer's
-  name / phone / address, and "Cash on delivery".
+- **Checkout (js/app.js, Cart.placeOrder)**: orders POST to Netlify Forms as form `order`; the
+  fields must match the hidden `order` form in index.html (order_id, channel, name, phone, address,
+  note, items, subtotal, delivery, total, payment, preorder, placed_at). Items list name, size,
+  quantity and line total; totals include the ৳100 delivery. The bag empties only after a
+  successful submission, and a failed submission shows an error instead of a confirmation.
 - **Honest content**: no fabricated ratings, reviews, sales numbers, "authentic" or
   "free delivery" claims; empty categories must show as "Soon", never with fake products.
 - **HTML consistency**: every page uses the shared `#site-header` / `#site-footer`

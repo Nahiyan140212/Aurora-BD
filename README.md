@@ -15,17 +15,32 @@ warm ivory, cream and charcoal with a single bronze accent.
 `netlify.toml` also adds clean URLs: `/collections/perfume-men` → the Perfume for Men
 collection, `/products/creed-aventus` → that product page.
 
-## 🛒 How ordering works (WhatsApp — no payment gateway needed)
+## 🛒 How ordering works (on the website — cash on delivery)
 
-Everything routes to AuroraBD's WhatsApp (number set in [`js/data.js`](js/data.js)):
-
-- **Bag → Checkout** — the customer enters name, mobile number and address, then the full
-  order (items, subtotal, ৳100 delivery, total, customer details, "Cash on delivery")
-  opens in WhatsApp, ready to send. A confirmation screen explains the next steps.
+- **Bag → Checkout → Place order** — the customer enters name, mobile number and address
+  and taps **Place order**. The order is submitted to **Netlify Forms** (form name `order`)
+  without leaving the site, the bag empties, and a confirmation with an order number
+  (e.g. `AUR-261009-K3QZ`) is shown.
+- **Place order on WhatsApp** (second checkout button) — saves the same order to Netlify
+  *and* opens WhatsApp with the full order and its order number, so it arrives in both places.
+  Netlify records which route was used in the `channel` field (`Website` or
+  `Website + WhatsApp`). The confirmation of a website-only order also offers an optional
+  "Also send your order details on WhatsApp" link.
 - **Product page → Buy now** — adds the item and jumps straight to checkout.
-- **Contact form → Send via WhatsApp** — name, phone and message open in a chat.
+- Each order records: order number, channel, items (size × qty, line totals, pre-order flag),
+  subtotal, ৳100 delivery, total, payment (cash on delivery), name, phone, address, note
+  and the time placed (Bangladesh time).
 
-The **newsletter** signup submits to Netlify Forms (**Netlify → Forms**).
+**Seeing orders:** Netlify → your site → **Forms → order**. To get an email for every new
+order: **Forms → Form notifications → Add notification → Email notification** → choose the
+`order` form. Make sure **form detection is enabled** (Site configuration → Forms) — the
+hidden `order` and `newsletter` form definitions in `index.html` are what Netlify detects.
+
+**Contact form → Send via WhatsApp** — name, phone and message open in a WhatsApp chat
+(number set in [`js/data.js`](js/data.js)). If an order ever fails to submit, the
+checkout offers WhatsApp as a backup.
+
+The **newsletter** signup also submits to Netlify Forms (form `newsletter`).
 
 ## 🛍️ Managing products — everything is in `js/data.js`
 
@@ -64,7 +79,7 @@ index.html     Home — hero, categories, best sellers, featured perfumes, skinc
                scent families, why Aurora, story
 shop.html      Collection page — ?c=<collection>, with filters, sorting, size pricing
 product.html   Product page — ?p=<slug> (perfume and skincare layouts)
-contact.html   WhatsApp contact form, order info, FAQ
+contact.html   Contact form (opens WhatsApp), order info, FAQ
 about.html     Brand story
 help.html      My orders, shipping, payment, tracking, returns, privacy, terms
 css/style.css  Design system + all components

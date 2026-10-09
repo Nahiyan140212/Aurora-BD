@@ -689,12 +689,13 @@ const Cart = {
   remove(idx) { const items = this.items(); items.splice(idx, 1); this.save(items); },
   clear() { this.save([]); },
 
-  orderText(c) {
+  orderText(c, id) {
     const items = this.items();
     const lines = items.map(i => `• ${bySlug(i.slug).name}${sizeLabel(i.slug, i.size) ? ` — ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk${isPreorder(bySlug(i.slug)) ? " (pre-order)" : ""}`);
     const pre = items.some(i => isPreorder(bySlug(i.slug)));
     return [
       "Hello AuroraBD! I would like to place an order:",
+      ...(id ? [`Order number: ${id}`] : []),
       ...lines,
       `Subtotal: ${this.subtotal()} Tk`,
       `Delivery: ${AURORA.deliveryFee} Tk`,
@@ -730,11 +731,12 @@ const Cart = {
       else if (t.dataset.dec) this.setQty(+t.dataset.dec, -1);
       else if (t.dataset.rm) this.remove(+t.dataset.rm);
       else if (t.dataset.go) { this.view = t.dataset.go; this.update(); $("#cartBody").scrollTop = 0; }
-      else if (t.dataset.clearDone !== undefined) { this.clear(); this.view = "bag"; Layer.close(el); }
+      else if (t.dataset.finish !== undefined) { this.view = "bag"; this.lastOrder = null; Layer.close(el); }
     });
     el.addEventListener("submit", e => {
       if (e.target.id !== "checkoutForm") return;
       e.preventDefault();
+      if (this.busy) return;
       const f = e.target;
       const c = {
         name: f.name.value.trim(), phone: f.phone.value.trim(),
@@ -751,13 +753,71 @@ const Cart = {
       check("address", c.address.length > 5);
       if (!ok) return;
       store.set(CUSTOMER_KEY, { name: c.name, phone: c.phone, address: c.address });
-      const url = waLink(this.orderText(c));
-      this.lastOrder = { ...c, url, total: this.subtotal() + AURORA.deliveryFee };
-      window.open(url, "_blank", "noopener");
-      this.view = "done";
-      this.update();
+
+      const id = "AUR-" + new Date().toISOString().slice(2, 10).replace(/-/g, "") + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
+      const viaWhatsApp = e.submitter?.value === "whatsapp" && waConfigured();
+      /* Open WhatsApp right away, inside the click, so browsers don't block it as a pop-up */
+      const waUrl = waConfigured() ? waLink(this.orderText(c, id)) : "";
+      if (viaWhatsApp) window.open(waUrl, "_blank", "noopener");
+      this.placeOrder(c, id, viaWhatsApp, waUrl);
     });
     this.update();
+  },
+  /* Save the order to Netlify Forms (form "order"). The customer stays on the site;
+     with "Place order on WhatsApp" the same order (same number) also opens in WhatsApp. */
+  async placeOrder(c, id, viaWhatsApp, waUrl) {
+    this.busy = true;
+    const btns = $$("#placeOrderBtn, #placeOrderWa"), err = $("#orderError");
+    btns.forEach(b => { b.disabled = true; });
+    $("#placeOrderBtn").textContent = "Placing your order…";
+    err.hidden = true;
+
+    const items = this.items();
+    const subtotal = this.subtotal(), total = subtotal + AURORA.deliveryFee;
+    const lines = items.map(i => {
+      const name = bySlug(i.slug).name, size = sizeLabel(i.slug, i.size);
+      return `${name}${size ? ` (${size})` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk${isPreorder(bySlug(i.slug)) ? " [pre-order]" : ""}`;
+    });
+    const fields = {
+      "form-name": "order",
+      "bot-field": "",
+      order_id: id,
+      channel: viaWhatsApp ? "Website + WhatsApp" : "Website",
+      name: c.name,
+      phone: c.phone,
+      address: c.address,
+      note: c.note,
+      items: lines.join("\n"),
+      subtotal: `${subtotal} Tk`,
+      delivery: `${AURORA.deliveryFee} Tk`,
+      total: `${total} Tk`,
+      payment: "Cash on delivery",
+      preorder: items.some(i => isPreorder(bySlug(i.slug))) ? `Yes — contains pre-order skincare (orders by ${preorderEnds()})` : "No",
+      placed_at: new Date().toLocaleString("en-GB", { timeZone: "Asia/Dhaka" })
+    };
+
+    try {
+      const res = await fetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams(fields).toString()
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      this.lastOrder = { ...c, id, total, viaWhatsApp, waUrl,
+        lines: items.map((i, n) => ({ text: lines[n], amount: sizePrice(i.slug, i.size) * i.qty })) };
+      this.busy = false;
+      this.view = "done";
+      this.save([]);                        /* order placed — empty the bag */
+      $("#cartBody").scrollTop = 0;
+    } catch {
+      this.busy = false;
+      btns.forEach(b => { b.disabled = false; });
+      $("#placeOrderBtn").textContent = "Place order";
+      err.hidden = false;
+      err.innerHTML = viaWhatsApp
+        ? `We couldn't save your order on the website, but WhatsApp has opened with your full order — just tap <strong>Send</strong> there. <a href="${waUrl}" target="_blank" rel="noopener">Open WhatsApp again</a>.`
+        : `We couldn't place your order — please check your internet connection and try again.${waUrl ? ` If it keeps failing, <a href="${waUrl}" target="_blank" rel="noopener">send your order to us on WhatsApp</a>.` : ""}`;
+    }
   },
   open() { this.update(); Layer.open($("#cartDrawer")); },
 
@@ -767,25 +827,27 @@ const Cart = {
     if (!body) return;
     const items = this.items();
     const total = this.subtotal() + AURORA.deliveryFee;
-    $("#cartTitle").textContent = { bag: "Your bag", checkout: "Delivery details", done: "Order ready" }[this.view];
+    $("#cartTitle").textContent = { bag: "Your bag", checkout: "Delivery details", done: "Order placed" }[this.view];
 
     if (this.view === "done" && this.lastOrder) {
       const o = this.lastOrder;
       body.innerHTML = `
-        <div class="confirm">
+        <div class="confirm" role="status">
           <div class="tick">${icon("check")}</div>
-          <h3>Thank you, ${esc(o.name.split(" ")[0])}</h3>
-          <p>Your order (${fmt(o.total)}, cash on delivery) is ready in WhatsApp.</p>
-          <ol>
-            <li><span>Tap <strong>Send</strong> in WhatsApp to place the order.</span></li>
-            <li><span>We'll call or message ${esc(o.phone)} to confirm it.</span></li>
-            <li><span>Pay in cash when your parcel arrives.</span></li>
-          </ol>
-          <p class="small">WhatsApp didn't open? <a href="${o.url}" target="_blank" rel="noopener" style="text-decoration:underline">Open it again</a>.</p>
+          <h3>Thank you for your order!</h3>
+          <p>Your order has been successfully placed and confirmed. We appreciate your trust in us and look forward to serving you.</p>
+          <div class="order-sum" style="text-align:left">
+            <div><span>Order number</span><strong>${esc(o.id)}</strong></div>
+            ${o.lines.map(l => `<div><span>${esc(l.text.replace(/ = \d+ Tk/, "").replace(" [pre-order]", " · Pre-order"))}</span><span>${fmt(l.amount)}</span></div>`).join("")}
+            <div><span>Delivery</span><span>${fmt(AURORA.deliveryFee)}</span></div>
+            <div class="grand"><span>Total · Cash on delivery</span><span>${fmt(o.total)}</span></div>
+          </div>
+          <p class="small" style="margin-top:16px">Delivering to ${esc(o.name)}, ${esc(o.address)}. We'll contact you at ${esc(o.phone)} about your delivery.</p>
+          ${o.waUrl ? (o.viaWhatsApp
+            ? `<p class="small">We've also opened WhatsApp with your order &mdash; tap <strong>Send</strong> there. <a href="${o.waUrl}" target="_blank" rel="noopener" style="text-decoration:underline">Open WhatsApp again</a></p>`
+            : `<p class="small"><a href="${o.waUrl}" target="_blank" rel="noopener" style="text-decoration:underline">Also send your order details on WhatsApp</a> (optional)</p>`) : ""}
         </div>`;
-      foot.innerHTML = `
-        <button class="btn btn-block" data-clear-done>Done — clear my bag</button>
-        <p class="cart-note">Keep your bag until you've sent the message, just in case.</p>`;
+      foot.innerHTML = `<button class="btn btn-block" data-finish>Continue shopping</button>`;
       return;
     }
 
@@ -839,8 +901,10 @@ const Cart = {
         </div>
         <button class="back-btn" data-go="bag">${icon("left")} Back to bag</button>`;
       foot.innerHTML = `
-        <button class="btn btn-block" type="submit" form="checkoutForm">${icon("whatsapp")} Place order on WhatsApp</button>
-        <p class="cart-note">Your order opens in WhatsApp — tap send. We'll confirm by phone before delivery.</p>`;
+        <p class="order-error" id="orderError" role="alert" hidden></p>
+        <button class="btn btn-block" type="submit" form="checkoutForm" id="placeOrderBtn">Place order</button>
+        ${waConfigured() ? `<button class="btn btn-outline btn-block" type="submit" form="checkoutForm" name="via" value="whatsapp" id="placeOrderWa" style="margin-top:10px">${icon("whatsapp")} Place order on WhatsApp</button>` : ""}
+        <p class="cart-note">Pay ${fmt(total)} in cash when your order arrives.</p>`;
       return;
     }
 
