@@ -16,6 +16,13 @@ const AURORA = {
     "Cash on delivery",
     "Order easily on WhatsApp"
   ],
+  /* Skincare pre-order — products with a `preorderPrice` use it until `endsAt`
+     (Bangladesh time), then go back to their regular `price` automatically.
+     Set to null to switch the pre-order off. */
+  preorder: {
+    endsAt: "2026-10-19T23:59:59+06:00",
+    note: "The pre-order discount applies to skincare only."
+  },
   /* Social profile links — fill in to show icons in the footer.
      Leave "" to hide an icon. */
   social: {
@@ -49,7 +56,8 @@ const AURORA = {
    Skincare fields (category: "skincare"):
    brand:        e.g. "COSRX"
    size:         e.g. "150ml" or "100g" ("" if unknown)
-   price:        a number, or null to show "Price on request"
+   price:        regular price, or null to show "Price on request"
+   preorderPrice: price while AURORA.preorder is running (optional)
    skincareType: a key from SKINCARE_CATEGORIES (e.g. "serum"), or a list
    summary:      optional one-line intro under the product name
    skinTypes:    keys from SKIN_TYPES (e.g. ["oily", "combination"])
@@ -473,8 +481,8 @@ const PRODUCTS = [
 
   /* ================= SKINCARE =================
      Details below come from each product's label / Aurora product image.
-     price: null shows "Price on request" — set a number (e.g. price: 1450)
-     to enable Add to bag. */
+     price = regular price; preorderPrice = pre-order price until AURORA.preorder.endsAt.
+     price: null shows "Price on request" with a WhatsApp ask button. */
 
   /* ----- Cleansers ----- */
   {
@@ -484,7 +492,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "cleanser",
     size: "150ml",
-    price: null,
+    price: 1250,
+    preorderPrice: 875,
     badge: null,
     whatItDoes: "A gentle gel cleanser that removes dirt, oil and impurities while keeping your skin's natural pH balanced. It soothes and refreshes, helps keep pores clean and clear, and leaves skin soft, smooth and healthy.",
     howToUse: "Massage a small amount onto damp skin, then rinse well with lukewarm water. Use morning and evening.",
@@ -498,7 +507,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "cleanser",
     size: "150ml",
-    price: null,
+    price: 1200,
+    preorderPrice: 840,
     badge: null,
     whatItDoes: "A daily cleanser with salicylic acid that removes dirt, oil and impurities, helps unclog pores and prevent breakouts, and gently exfoliates — leaving skin clean, smooth and refreshed.",
     keyIngredients: ["Salicylic Acid"],
@@ -513,7 +523,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "cleanser",
     size: "150ml",
-    price: null,
+    price: 1400,
+    preorderPrice: 980,
     badge: null,
     whatItDoes: "A foaming cleanser that deeply cleans away dust, excess oil and makeup. Rice water helps keep skin bright and fresh with a natural glow, and it cleans without dryness, leaving skin soft and smooth. Suitable for everyday use.",
     keyIngredients: ["Rice Water"],
@@ -532,7 +543,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "serum",
     size: "30ml",
-    price: null,
+    price: 2450,
+    preorderPrice: 1715,
     badge: null,
     whatItDoes: "A brightening serum with 10% niacinamide and 4% tranexamic acid. It helps brighten skin, reduce the look of dark spots and even out skin tone, while keeping skin hydrated, healthy and smooth.",
     keyIngredients: ["Niacinamide 10%", "Tranexamic Acid (TXA) 4%"],
@@ -547,7 +559,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "serum",
     size: "50ml",
-    price: null,
+    price: 1750,
+    preorderPrice: 1225,
     badge: null,
     whatItDoes: "A glow serum with 5% niacinamide, squalane and rice extract. It helps reduce dark spots and pigmentation, brightens and evens skin tone, keeps skin hydrated and soft, refines texture and helps protect skin from environmental damage.",
     keyIngredients: ["Niacinamide 5%", "Squalane", "Rice Extract"],
@@ -564,7 +577,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "serum",
     size: "100ml",
-    price: null,
+    price: 1850,
+    preorderPrice: 1295,
     badge: null,
     whatItDoes: "A lightweight essence made with 96% snail secretion filtrate. It deeply hydrates and locks in moisture, helps repair damaged skin, improves skin texture and elasticity, and gives a healthy, natural glow.",
     keyIngredients: ["Snail Secretion Filtrate 96%"],
@@ -579,7 +593,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "serum",
     size: "30ml",
-    price: null,
+    price: 2300,
+    preorderPrice: 1610,
     badge: null,
     whatItDoes: "A serum with 15% TXA and niacinamide. It helps reduce dark spots and marks, helps care for acne scars, improves uneven skin tone and texture, and helps keep skin hydrated.",
     keyIngredients: ["Tranexamic Acid (TXA)", "Niacinamide"],
@@ -595,8 +610,10 @@ const PRODUCTS = [
     brand: "SKIN1004",
     category: "skincare",
     skincareType: "serum",
-    size: "100ml",
-    price: null,
+    variants: [
+      { ml: 30, label: "30ml", price: 1100, preorderPrice: 770 },
+      { ml: 100, label: "100ml", price: 2400, preorderPrice: 1680 }
+    ],
     badge: null,
     whatItDoes: "A capsule ampoule made with Madagascar centella. It calms irritated and sensitive skin, brightens dull skin and evens skin tone, deeply hydrates and nourishes, and helps strengthen the skin barrier.",
     keyIngredients: ["Centella Asiatica (Madagascar)"],
@@ -612,7 +629,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "serum",
     size: "40ml",
-    price: null,
+    price: 1800,
+    preorderPrice: 1260,
     badge: null,
     whatItDoes: "A niacinamide serum for clearer pores and smoother skin. It helps minimize the look of enlarged pores, controls excess oiliness, improves skin texture and helps reduce breakouts, leaving skin smoother and clearer.",
     keyIngredients: ["Niacinamide"],
@@ -629,7 +647,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "moisturizer",
     size: "100g",
-    price: null,
+    price: 1850,
+    preorderPrice: 1295,
     badge: null,
     whatItDoes: "An all-in-one cream with 92% snail secretion filtrate. It deeply hydrates and nourishes, helps repair damaged skin, improves skin texture and elasticity, and gives a healthy, natural glow.",
     keyIngredients: ["Snail Secretion Filtrate 92%"],
@@ -644,7 +663,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "moisturizer",
     size: "50ml",
-    price: null,
+    price: 2250,
+    preorderPrice: 1575,
     badge: null,
     whatItDoes: "A relief cream that soothes irritated and sensitive skin, helps repair a damaged skin barrier, deeply hydrates and locks in moisture, and strengthens skin for a healthier, smoother look.",
     howToUse: "Apply an even layer as the last step of your routine, morning and evening.",
@@ -659,7 +679,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "moisturizer",
     size: "50ml",
-    price: null,
+    price: 1700,
+    preorderPrice: 1190,
     badge: null,
     whatItDoes: "A moisturizing cream with rice and ceramide. It deeply moisturizes, strengthens the skin's natural barrier, helps reduce dryness and roughness, and keeps skin soft and smooth.",
     keyIngredients: ["Rice", "Ceramide"],
@@ -674,7 +695,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "moisturizer",
     size: "50ml",
-    price: null,
+    price: 2300,
+    preorderPrice: 1610,
     badge: null,
     whatItDoes: "A tranexamic acid cream for brighter, clearer, healthier-looking skin. It helps brighten skin tone, fade dark spots and uneven tone, keeps skin moisturized and supports a smoother look.",
     keyIngredients: ["Tranexamic Acid (TXA)"],
@@ -688,8 +710,9 @@ const PRODUCTS = [
     brand: "Arencia",
     category: "skincare",
     skincareType: ["moisturizer", "eye-care"],
-    size: "",
-    price: null,
+    size: "50ml",
+    price: 1850,
+    preorderPrice: 1295,
     badge: null,
     summary: "A face and eye moisturizer with vitamin C.",
     whatItDoes: "A face and eye moisturizer with a vitamin C complex and glutathione. It helps brighten skin and boost glow, reduces the look of dark spots and uneven tone, deeply hydrates, keeps skin smooth and soft, and gives antioxidant support to help protect skin from environmental damage.",
@@ -708,8 +731,9 @@ const PRODUCTS = [
     brand: "Beauty of Joseon",
     category: "skincare",
     skincareType: "sunscreen",
-    size: "",
-    price: null,
+    size: "50ml",
+    price: 1800,
+    preorderPrice: 1260,
     badge: null,
     whatItDoes: "A lightweight SPF50+ PA++++ sunscreen with rice extract and panthenol (vitamin B5). It gives long-lasting UVA and UVB protection, hydrates and softens, strengthens the skin barrier, and has a light, non-sticky finish that absorbs quickly.",
     keyIngredients: ["Rice Extract", "Panthenol (Vitamin B5)"],
@@ -725,8 +749,9 @@ const PRODUCTS = [
     brand: "Beauty of Joseon",
     category: "skincare",
     skincareType: "sunscreen",
-    size: "",
-    price: null,
+    size: "50ml",
+    price: 1900,
+    preorderPrice: 1330,
     badge: null,
     whatItDoes: "An SPF50+ PA++++ sunscreen with rice and probiotics. It gives long-lasting UVA and UVB protection, deeply hydrates and softens, calms and nourishes, and has a light, non-sticky, creamy finish suited to everyday use.",
     keyIngredients: ["Rice", "Probiotics"],
@@ -743,7 +768,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "sunscreen",
     size: "70ml",
-    price: null,
+    price: 1500,
+    preorderPrice: 1050,
     badge: null,
     whatItDoes: "An SPF50+ PA+++ sun milk that protects against UVA and UVB rays, gives skin a smooth, soft finish, and has a lightweight, non-greasy formula that sits easily under makeup.",
     howToUse: "Shake well. Apply generously as the last step of your morning routine, 15 minutes before going out. Reapply every 2 hours in the sun.",

@@ -64,17 +64,46 @@ const perfumeType = p => p.type || "spray";
 const notesOf = p => [...(p.top || []), ...(p.heart || []), ...(p.base || [])];
 const labelOf = (list, key) => list.find(x => x.key === key)?.label || key;
 
-/* Sizes: product `variants` replace the shared list; `prices` override it */
-const productSizes = p => p?.variants
-  ? p.variants.map(v => ({ ml: v.ml, price: v.price ?? null, label: v.label ?? `${v.ml}ml` }))
-  : p && isSkincare(p) ? [{ ml: 1, price: p.price ?? null, label: p.size || "" }]
-  : AURORA.sizes.map(s => ({ ml: s.ml, price: p?.prices?.[s.ml] ?? s.price, label: `${s.ml}ml` }));
+/* Pre-order: while AURORA.preorder is running, a size's `preorderPrice` replaces its price */
+const preorderActive = () => {
+  const po = AURORA.preorder;
+  return !!po && Date.now() <= new Date(po.endsAt).getTime();
+};
+const withPreorder = s => {
+  const on = preorderActive() && typeof s.preorderPrice === "number";
+  return { ml: s.ml, label: s.label, regular: s.price, price: on ? s.preorderPrice : s.price, preorder: on };
+};
+/* Sizes: product `variants` replace the shared list; `prices` override it.
+   `price` is what the customer pays now; `regular` is the price outside the pre-order. */
+const productSizes = p => (p?.variants
+  ? p.variants.map(v => ({ ml: v.ml, price: v.price ?? null, preorderPrice: v.preorderPrice, label: v.label ?? `${v.ml}ml` }))
+  : p && isSkincare(p) ? [{ ml: 1, price: p.price ?? null, preorderPrice: p.preorderPrice, label: p.size || "" }]
+  : AURORA.sizes.map(s => ({ ml: s.ml, price: p?.prices?.[s.ml] ?? s.price, label: `${s.ml}ml` }))
+).map(withPreorder);
+const isPreorder = p => productSizes(p).some(s => s.preorder);
+const discountPct = s => s.preorder && s.regular ? Math.round((1 - s.price / s.regular) * 100) : 0;
+/* Price with the regular price struck through while a pre-order discount applies */
+const priceHTML = (s, prefix = "") => s.preorder
+  ? `${prefix}${fmt(s.price)} <s class="was">${fmt(s.regular)}</s> <span class="off">−${discountPct(s)}%</span>`
+  : `${prefix}${fmt(s.price)}`;
+const preorderEnds = () => new Date(AURORA.preorder.endsAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "Asia/Dhaka" });
+const maxPreorderPct = () => Math.max(0, ...PRODUCTS.flatMap(productSizes).map(discountPct));
+/* "30%" when every pre-order discount is the same, otherwise "up to 30%" */
+const preorderOff = () => {
+  const pcts = new Set(PRODUCTS.flatMap(productSizes).filter(s => s.preorder).map(discountPct));
+  return `${pcts.size > 1 ? "up to " : ""}${maxPreorderPct()}%`;
+};
 const sizePrice = (slug, ml) => productSizes(bySlug(slug)).find(s => s.ml === ml)?.price ?? 0;
 const sizeLabel = (slug, ml) => productSizes(bySlug(slug)).find(s => s.ml === ml)?.label ?? `${ml}ml`;
 /* A product without a price yet ("price: null") is shown as "Price on request" and ordered via WhatsApp */
 const hasPrice = p => productSizes(p).every(s => typeof s.price === "number");
 const fromPrice = p => hasPrice(p) ? Math.min(...productSizes(p).map(s => s.price)) : null;
-const priceText = p => hasPrice(p) ? `${productSizes(p).length > 1 ? "From " : ""}${fmt(fromPrice(p))}` : "Price on request";
+const priceText = p => {
+  if (!hasPrice(p)) return "Price on request";
+  const sizes = productSizes(p);
+  const low = sizes.reduce((a, b) => (b.price < a.price ? b : a));
+  return priceHTML(low, sizes.length > 1 ? "From " : "");
+};
 const askLink = p => waLink(`Hello AuroraBD! I'd like to order ${p.name}. What is the price?`);
 const askButton = p => waConfigured()
   ? `<a class="btn btn-block" href="${askLink(p)}" target="_blank" rel="noopener">${icon("whatsapp")} Ask for price on WhatsApp</a>`
@@ -137,6 +166,8 @@ const COLLECTIONS = (() => {
     desc: "Korean skincare essentials — cleansers, serums, moisturizers and sunscreens, with what each one does and how to use it." });
   SKINCARE_CATEGORIES.forEach(k => add(`skincare-${k.key}`, { group: "skincare", title: k.label,
     filter: skin(p => skinCats(p).includes(k.key)), desc: `${k.label} — with what each product does, its key ingredients and how to use it.` }));
+  add("preorder", { group: "skincare", title: "Skincare Pre-order", nav: "Pre-order", filter: p => isSkincare(p) && isPreorder(p),
+    desc: AURORA.preorder ? `Pre-order Korean skincare at a discount — offer ends ${preorderEnds()}. Applies to skincare only.` : "" });
   add("skincare-best-sellers", { group: "skincare", title: "Skincare Best Sellers", nav: "Best Sellers", filter: skin(p => p.badge === "Bestseller"),
     desc: "Our most-loved skincare." });
   add("skincare-new-arrivals", { group: "skincare", title: "New in Skincare", nav: "New Arrivals", filter: skin(p => p.badge === "New"),
@@ -164,7 +195,7 @@ const LEGACY_CAT = { him: "perfume-men", her: "perfume-women", unisex: "perfume-
 const SUB_NAV = {
   shop: ["all", "best-sellers", "new-arrivals", "featured", "perfume", "skincare"],
   perfume: ["perfume", "perfume-men", "perfume-women", "perfume-unisex", "perfume-oil", "roll-on"],
-  skincare: ["skincare", ...SKINCARE_CATEGORIES.map(k => `skincare-${k.key}`)]
+  skincare: ["skincare", ...(preorderActive() ? ["preorder"] : []), ...SKINCARE_CATEGORIES.map(k => `skincare-${k.key}`)]
 };
 const GROUP_ROOT = { shop: "all", perfume: "perfume", skincare: "skincare" };
 
@@ -189,7 +220,7 @@ const NAV = [
   { key: "skincare", label: "Skincare", href: collUrl("skincare"), columns: [
       { title: "Category", links: ["skincare", ...SKINCARE_CATEGORIES.slice(0, 3).map(k => `skincare-${k.key}`)].map(navLink) },
       { title: "More", links: SKINCARE_CATEGORIES.slice(3).map(k => navLink(`skincare-${k.key}`)) },
-      { title: "Discover", links: ["skincare-best-sellers", "skincare-new-arrivals"].map(navLink) }
+      { title: "Discover", links: [...(preorderActive() ? ["preorder"] : []), "skincare-best-sellers", "skincare-new-arrivals"].map(navLink) }
     ], feature: "skincare-note" },
   { key: "contact", label: "Contact", href: "contact.html" }
 ];
@@ -222,7 +253,8 @@ function megaFeature(item) {
 function renderHeader() {
   const page = document.body.dataset.page;
   const group = document.body.dataset.group;
-  const ann = (AURORA.announcements || []).map((m, i) => `<li${i === 0 ? ' class="is-on"' : ""}>${esc(m)}</li>`).join("");
+  const preMsg = preorderActive() && countOf("preorder") ? [`Skincare pre-order: ${preorderOff()} off until ${preorderEnds()}`] : [];
+  const ann = [...preMsg, ...(AURORA.announcements || [])].map((m, i) => `<li${i === 0 ? ' class="is-on"' : ""}>${esc(m)}</li>`).join("");
   const navItems = NAV.map(item => {
     const current = (group && group === item.key) || (page === item.key) ? " is-current" : "";
     if (!item.columns) return `<li><a class="nav-link${current}" href="${item.href}">${item.label}</a></li>`;
@@ -447,7 +479,8 @@ function productCard(p, opts = {}) {
   const sizes = productSizes(p);
   const priced = hasPrice(p);
   const shown = opts.size && priced ? sizes.find(s => s.ml === opts.size) : null;
-  const price = shown ? `${fmt(shown.price)} <small>· ${shown.label}</small>` : priceText(p);
+  const price = shown ? `${priceHTML(shown)} <small>· ${shown.label}</small>` : priceText(p);
+  const badge = isPreorder(p) ? ["Pre-order", " pre"] : p.badge ? [p.badge === "Bestseller" ? "Best Seller" : p.badge, p.badge === "New" ? " new" : ""] : null;
   const addTool = priced
     ? `<button class="tool" data-quickadd="${p.slug}" aria-label="Quick add ${esc(p.name)}" aria-expanded="false">${icon("plus")}<span>Quick add</span></button>`
     : waConfigured() ? `<a class="tool" href="${askLink(p)}" target="_blank" rel="noopener" aria-label="Ask the price of ${esc(p.name)} on WhatsApp">${icon("whatsapp")}<span>Ask price</span></a>` : "";
@@ -458,7 +491,7 @@ function productCard(p, opts = {}) {
       <a class="pcard-media" href="product.html?p=${p.slug}" tabindex="-1" aria-hidden="true">
         <img src="${thumbSrc(p.images[0])}" alt="" loading="lazy" decoding="async" width="720" height="480">
         ${alt}
-        ${p.badge ? `<span class="pcard-badge${p.badge === "New" ? " new" : ""}">${p.badge === "Bestseller" ? "Best Seller" : esc(p.badge)}</span>` : ""}
+        ${badge ? `<span class="pcard-badge${badge[1]}">${esc(badge[0])}</span>` : ""}
       </a>
       <div class="pcard-tools">
         <button class="tool qv" data-quickview="${p.slug}" aria-label="Quick view ${esc(p.name)}">${icon("eye")}<span>Quick view</span></button>
@@ -586,7 +619,7 @@ const QuickView = {
         <a class="link full-link" href="product.html?p=${p.slug}">View full details ${icon("arrow")}</a>
       </div>`;
     const refresh = () => {
-      $("#qvPrice").textContent = hasPrice(p) ? fmt(sizePrice(p.slug, size)) : "Price on request";
+      $("#qvPrice").innerHTML = hasPrice(p) ? priceHTML(productSizes(p).find(s => s.ml === size)) : "Price on request";
       $("#qvSizesLabel").textContent = sizeLabel(p.slug, size);
       if ($("#qvQty")) $("#qvQty").textContent = qty;
     };
@@ -660,13 +693,15 @@ const Cart = {
 
   orderText(c) {
     const items = this.items();
-    const lines = items.map(i => `• ${bySlug(i.slug).name}${sizeLabel(i.slug, i.size) ? ` — ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk`);
+    const lines = items.map(i => `• ${bySlug(i.slug).name}${sizeLabel(i.slug, i.size) ? ` — ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk${isPreorder(bySlug(i.slug)) ? " (pre-order)" : ""}`);
+    const pre = items.some(i => isPreorder(bySlug(i.slug)));
     return [
       "Hello AuroraBD! I would like to place an order:",
       ...lines,
       `Subtotal: ${this.subtotal()} Tk`,
       `Delivery: ${AURORA.deliveryFee} Tk`,
       `Total: ${this.subtotal() + AURORA.deliveryFee} Tk`,
+      ...(pre ? [`Pre-order skincare at the pre-order price (orders by ${preorderEnds()})`] : []),
       "",
       `Name: ${c.name}`,
       `Phone: ${c.phone}`,
@@ -818,7 +853,7 @@ const Cart = {
           <a href="product.html?p=${p.slug}"><img src="${thumbSrc(p.images[0])}" alt="${esc(p.name)}" width="76" height="76" loading="lazy"></a>
           <div>
             <h3><a href="product.html?p=${p.slug}">${esc(p.name)}</a></h3>
-            <p class="v">${[sizeLabel(i.slug, i.size), fmt(sizePrice(i.slug, i.size))].filter(Boolean).join(" · ")}</p>
+            <p class="v">${[sizeLabel(i.slug, i.size), fmt(sizePrice(i.slug, i.size)), isPreorder(p) ? "Pre-order" : ""].filter(Boolean).join(" · ")}</p>
             <div class="qty">
               <button data-dec="${idx}" aria-label="Decrease quantity of ${esc(p.name)}">${icon("minus")}</button>
               <span>${i.qty}</span>
@@ -964,6 +999,36 @@ function initHome() {
   initFeaturedTabs();
   initScentFinder();
   initRoutine();
+  initPreorderBand();
+}
+
+/* Skincare pre-order band with countdown — hidden once the offer ends */
+function initPreorderBand() {
+  const band = $("#preorderBand");
+  if (!band || !preorderActive() || !countOf("preorder")) return;
+  const off = preorderOff();
+  $("#po-title").textContent = `${off[0].toUpperCase()}${off.slice(1)} off Korean skincare`;
+  $("#poText").textContent = `Pre-order before ${preorderEnds()} and get the pre-order price on cleansers, serums, moisturizers and sunscreens. The pre-order discount applies to skincare only.`;
+  $("#poProducts").innerHTML = skincarePicks().filter(isPreorder).slice(0, 3).map(p => {
+    const s = productSizes(p).reduce((a, b) => (b.price < a.price ? b : a));
+    return `
+      <a class="po-item" href="product.html?p=${p.slug}">
+        <img src="${thumbSrc(p.images[0])}" alt="" loading="lazy" width="720" height="720">
+        <div><strong>${esc(p.name)}</strong><span class="p">${priceHTML(s)}</span></div>
+      </a>`;
+  }).join("");
+  const end = new Date(AURORA.preorder.endsAt).getTime();
+  const count = $("#poCount");
+  const tick = () => {
+    const left = Math.max(0, end - Date.now());
+    if (!left) { band.hidden = true; clearInterval(timer); return; }
+    const d = Math.floor(left / 864e5), h = Math.floor(left / 36e5) % 24, m = Math.floor(left / 6e4) % 60, s = Math.floor(left / 1e3) % 60;
+    count.innerHTML = [[d, "Days"], [h, "Hours"], [m, "Mins"], [s, "Secs"]]
+      .map(([v, l]) => `<div><b>${String(v).padStart(2, "0")}</b><span>${l}</span></div>`).join("");
+  };
+  const timer = setInterval(tick, 1000);
+  tick();
+  band.hidden = false;
 }
 
 /* Skincare in the curated SKINCARE_FEATURED order, then the rest */
@@ -1233,6 +1298,12 @@ function initCollection() {
     return;
   }
 
+  /* Price filter: exact "From" prices when there are only a few, otherwise ranges */
+  const useRanges = new Set(base.filter(hasPrice).map(fromPrice)).size > 4;
+  const RANGES = [[0, 999], [1000, 1499], [1500, 1999], [2000, Infinity]];
+  const priceKey = v => String(useRanges ? RANGES.find(([lo, hi]) => v >= lo && v <= hi)[0] : v);
+  const priceLabel = k => !useRanges ? `From ${fmt(+k)}` : (([lo, hi]) => hi === Infinity ? `${fmt(lo)} and above` : lo === 0 ? `Under ${fmt(hi + 1)}` : `${fmt(lo)} – ${fmt(hi)}`)(RANGES.find(([lo]) => String(lo) === k));
+
   /* Facets — only the ones that actually split this collection */
   const facetDefs = [
     { key: "category", title: "Category", of: p => [isSkincare(p) ? "skincare" : "perfume"], label: k => ({ perfume: "Perfume", skincare: "Skincare" })[k] },
@@ -1243,7 +1314,7 @@ function initCollection() {
     { key: "brand", title: "Brand", of: p => isSkincare(p) && p.brand ? [p.brand] : [], label: k => k, sortAlpha: true },
     { key: "skin", title: "Skin type", of: p => p.skinTypes || [], label: k => labelOf(SKIN_TYPES, k) },
     { key: "concern", title: "Concern", of: p => p.concerns || [], label: k => labelOf(SKIN_CONCERNS, k) },
-    { key: "price", title: "Price", of: p => hasPrice(p) ? [String(fromPrice(p))] : [], label: k => `From ${fmt(+k)}`, order: null, sortNum: true }
+    { key: "price", title: "Price", of: p => hasPrice(p) ? [priceKey(fromPrice(p))] : [], label: priceLabel, order: null, sortNum: true }
   ].map(f => {
     const counts = new Map();
     base.forEach(p => f.of(p).forEach(v => counts.set(v, (counts.get(v) || 0) + 1)));
@@ -1411,6 +1482,7 @@ function initProduct() {
       <p class="summary">${esc(summary)}</p>
       <p class="price" id="pdpPrice"></p>
       <p class="price-note">Cash on delivery · + ${fmt(AURORA.deliveryFee)} delivery anywhere in Bangladesh</p>
+      <p class="preorder-note" id="pdpPreorder"></p>
       ${variantPicker(sizes, size, "pdpSizes")}
       ${hasPrice(p) ? `<div class="opt-head">Quantity</div>
       <div class="buy-row">
@@ -1455,7 +1527,10 @@ function initProduct() {
     $("#pdpSizesLabel").textContent = sizeLabel(p.slug, size);
     if (!priced) { $("#pdpPrice").textContent = "Price on request"; $("#barPrice").textContent = "Price on request"; return; }
     const each = sizePrice(p.slug, size);
-    $("#pdpPrice").innerHTML = qty > 1 ? `${fmt(each * qty)} <small class="muted" style="font-size:13px">(${qty} × ${fmt(each)})</small>` : fmt(each);
+    const cur = productSizes(p).find(s => s.ml === size);
+    $("#pdpPrice").innerHTML = qty > 1 ? `${fmt(each * qty)} <small class="muted" style="font-size:13px">(${qty} × ${fmt(each)})</small>` : priceHTML(cur);
+    const note = $("#pdpPreorder");
+    if (note) note.innerHTML = cur.preorder ? `<strong>Pre-order price — ${discountPct(cur)}% off</strong> until ${preorderEnds()}. Regular price ${fmt(cur.regular)}. ${esc(AURORA.preorder.note || "")}` : "";
     $("#pdpQty").textContent = qty;
     $("#barPrice").textContent = [sizeLabel(p.slug, size), fmt(each)].filter(Boolean).join(" · ");
   };

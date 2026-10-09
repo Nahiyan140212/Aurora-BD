@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=6">
+  <link rel="stylesheet" href="css/style.css?v=8">
   <link rel="preload" as="image" href="images/products/full/creed-aventus.jpg">
 </head>
 <body data-page="home">
@@ -113,6 +113,23 @@
           <button data-hero-prev aria-label="Previous slide"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
           <button data-hero-next aria-label="Next slide"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
         </div>
+      </div>
+    </section>
+
+    <!-- ============ SKINCARE PRE-ORDER (shown only while the offer runs) ============ -->
+    <section class="preorder-band" id="preorderBand" hidden aria-labelledby="po-title">
+      <div class="container po-inner">
+        <div class="po-copy">
+          <span class="eyebrow">Skincare pre-order</span>
+          <h2 class="h2" id="po-title"></h2>
+          <p class="lede" id="poText"></p>
+          <div class="po-count" id="poCount" role="timer" aria-label="Time left to pre-order"></div>
+          <div class="po-ctas">
+            <a class="btn btn-light" href="shop.html?c=preorder">Pre-order skincare</a>
+            <a class="link" data-wa="Hello AuroraBD! I would like to pre-order skincare." href="#">Pre-order on WhatsApp</a>
+          </div>
+        </div>
+        <div class="po-products" id="poProducts"></div>
       </div>
     </section>
 
@@ -310,7 +327,7 @@
 
   <div id="site-footer"></div>
 
-  <script src="js/data.js?v=6"></script>
-  <script src="js/app.js?v=6"></script>
+  <script src="js/data.js?v=8"></script>
+  <script src="js/app.js?v=8"></script>
 </body>
 </html>
