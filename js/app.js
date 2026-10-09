@@ -9,8 +9,6 @@
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-/* Product name for large serif headings — Bodoni's "+" is a hairline, so set it in the sans */
-const titleHTML = s => esc(s).replace(/\+/g, '<span class="sym">+</span>');
 
 const fmt = n => AURORA.currency + n.toLocaleString("en-US");
 const bySlug = slug => PRODUCTS.find(p => p.slug === slug);
@@ -607,7 +605,7 @@ const QuickView = {
       <div class="media${isSkincare(p) ? " square" : ""}"><img src="${fullSrc(p.images[0])}" alt="${esc(p.name)}" width="1600" height="1066"></div>
       <div class="body buybox">
         <p class="meta-line">${esc(productMeta(p))}</p>
-        <h1>${titleHTML(p.name)}</h1>
+        <h1>${esc(p.name)}</h1>
         <p class="summary">${esc(p.desc || p.whatItDoes || "")}</p>
         <p class="price" id="qvPrice"></p>
         <p class="price-note">+ ${fmt(AURORA.deliveryFee)} delivery anywhere in Bangladesh</p>
@@ -1478,7 +1476,7 @@ function initProduct() {
     </div>
     <div class="buybox">
       <p class="meta-line">${skinProduct ? esc(productMeta(p)) : `${esc(GENDER[p.tag] || "")}${p.badge ? ` · ${p.badge === "Bestseller" ? "Best Seller" : esc(p.badge)}` : ""}`}</p>
-      <h1>${titleHTML(p.name)}</h1>
+      <h1>${esc(p.name)}</h1>
       <p class="summary">${esc(summary)}</p>
       <p class="price" id="pdpPrice"></p>
       <p class="price-note">Cash on delivery · + ${fmt(AURORA.deliveryFee)} delivery anywhere in Bangladesh</p>

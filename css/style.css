@@ -24,8 +24,9 @@
   --white: #ffffff;
 
   /* Type */
-  --serif: "Bodoni Moda", "Didot", "Times New Roman", serif;
-  --sans: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --serif: "Cormorant Garamond", "Garamond", "Times New Roman", serif;   /* headings */
+  --brand: "Cinzel", "Trajan Pro", "Times New Roman", serif;          /* logo wordmark — matches the AURORA crest */
+  --sans: "Albert Sans", "Helvetica Neue", Arial, sans-serif;        /* text, navigation, prices */
 
   /* Layout */
   --gutter: 20px;
@@ -917,12 +918,29 @@ h1, h2, h3, h4 { font-weight: 400; line-height: 1.15; }
 .modal-box .media.square { aspect-ratio: 1 / 1; }
 .pcard-price.ask { color: var(--muted); font-weight: 400; font-size: 13px; }
 
-/* Keep serif hairlines readable at large sizes (numbers like "10 + 4" in product names) */
-.h1, .h2, .h3, .display, .buybox h1, .prose, .story blockquote, .amt, .empty-state h2, .confirm h3,
-.panel h2, .prose-page h2, .prose-page p.lead, .newsletter .h3 {
-  font-variation-settings: "opsz" 28;
+/* ============================================================
+   TYPOGRAPHY — Cinzel (logo) · Cormorant Garamond (headings) · Albert Sans (text)
+   Cormorant has a small x-height, so headings run a little larger and at weight 500.
+   ============================================================ */
+.display, .h1, .h2, .h3, .buybox h1, .prose, .story blockquote, .amt, .empty-state h2, .confirm h3,
+.panel h2, .prose-page h2, .prose-page p.lead, .nl-done, .po-count b {
+  font-weight: 500; letter-spacing: 0; font-variant-numeric: lining-nums;
 }
-.sym { font-family: var(--sans); font-weight: 400; font-size: .82em; vertical-align: .06em; }
+.h1 { font-size: clamp(2.5rem, 5.6vw, 4rem); line-height: 1.02; }
+.h2 { font-size: clamp(1.95rem, 3.4vw, 2.75rem); line-height: 1.08; }
+.h3 { font-size: clamp(1.45rem, 2.3vw, 1.75rem); line-height: 1.15; }
+.h1 em, .h2 em, .display em { font-weight: 500; }
+.buybox h1 { font-size: clamp(2.1rem, 4vw, 2.9rem); line-height: 1.05; }
+.detail-row .prose { font-size: clamp(1.35rem, 2.3vw, 1.7rem); line-height: 1.4; }
+.story blockquote { font-size: clamp(1.6rem, 2.9vw, 2.25rem); line-height: 1.3; }
+.size-result .amt { font-size: clamp(2rem, 3.8vw, 2.8rem); }
+.prose-page p.lead { font-size: clamp(1.45rem, 2.6vw, 1.9rem); line-height: 1.4; }
+.empty-state h2, .confirm h3 { font-size: 1.85rem; }
+.panel h2, .prose-page h2 { font-size: 1.75rem; }
+.nl-done { font-size: 1.4rem; }
+.empty-state .mono, .founder .mark { font-weight: 500; }
+.logo-word { font-family: var(--brand); font-weight: 500; letter-spacing: .26em; margin-right: -.26em; }
+.footer-brand .logo-word { font-size: 24px; }
 
 /* Story: fragrance + skincare pair */
 .story-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
@@ -946,7 +964,7 @@ h1, h2, h3, h4 { font-weight: 400; line-height: 1.15; }
 .preorder-band .lede { color: #e6cfcc; margin: 10px 0 22px; }
 .po-count { display: flex; gap: 10px; margin-bottom: 26px; }
 .po-count div { min-width: 64px; padding: 10px 6px 8px; border: 1px solid rgba(245, 241, 232, .28); text-align: center; }
-.po-count b { display: block; font-family: var(--serif); font-variation-settings: "opsz" 28; font-weight: 400; font-size: 1.7rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.po-count b { display: block; font-family: var(--sans); font-weight: 500; font-size: 1.6rem; line-height: 1.15; font-variant-numeric: tabular-nums; }
 .po-count span { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #e3bdb8; }
 .po-ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; }
 .po-ctas .link { color: var(--on-wine); border-color: rgba(245, 241, 232, .45); }
