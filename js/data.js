@@ -58,6 +58,7 @@ const AURORA = {
    size:         e.g. "150ml" or "100g" ("" if unknown)
    price:        regular price, or null to show "Price on request"
    preorderPrice: price while AURORA.preorder is running (optional)
+   comingSoon:   true to list a product as "Coming soon" (no price, not orderable)
    skincareType: a key from SKINCARE_CATEGORIES (e.g. "serum"), or a list
    summary:      optional one-line intro under the product name
    skinTypes:    keys from SKIN_TYPES (e.g. ["oily", "combination"])
@@ -777,7 +778,157 @@ const PRODUCTS = [
     skinTypes: ["normal", "dry", "oily", "combination", "sensitive"],
     concerns: [],
     images: ["missha-soft-finish-sun-milk"]
+  },
 
+  /* ----- Coming soon (comingSoon: true — shown with a "Coming Soon" badge, not orderable yet).
+     To launch one: remove comingSoon, set price (and preorderPrice if needed). ----- */
+  {
+    slug: "dabo-rice-ferment-foam",
+    name: "Dabo Rice Ferment Foam (Whitening & Shining)",
+    brand: "Dabo",
+    category: "skincare",
+    skincareType: "cleanser",
+    size: "180ml",
+    price: null,
+    comingSoon: true,
+    badge: null,
+    whatItDoes: "A rice ferment foaming cleanser that removes dirt and excess oil, keeps skin soft and smooth, helps even out skin tone and helps maintain the skin's natural balance.",
+    keyIngredients: ["Fermented Rice"],
+    howToUse: "Work into a lather with water, massage onto damp skin, then rinse well.",
+    concerns: ["brightening"],
+    images: ["dabo-rice-ferment-foam"]
+  },
+  {
+    slug: "celimax-vita-a-retinal-shot-tightening-booster",
+    name: "celimax The Vita-A Retinal Shot Tightening Booster",
+    brand: "celimax",
+    category: "skincare",
+    skincareType: "serum",
+    size: "15ml",
+    price: null,
+    comingSoon: true,
+    badge: null,
+    whatItDoes: "A retinal booster that helps firm skin, smooth skin texture, minimize the look of pores and boost radiance.",
+    keyIngredients: ["Retinal"],
+    howToUse: "Use in the evening after cleansing: apply a small amount to the face and pat gently until absorbed, then follow with moisturizer. Use sunscreen during the day.",
+    concerns: ["anti-aging"],
+    images: ["celimax-vita-a-retinal-shot-tightening-booster"]
+  },
+  {
+    slug: "dr-althea-vitamin-c-boosting-serum",
+    name: "Dr.Althea Vitamin C Boosting Serum",
+    brand: "Dr.Althea",
+    category: "skincare",
+    skincareType: "serum",
+    size: "",
+    price: null,
+    comingSoon: true,
+    badge: null,
+    whatItDoes: "A vitamin C serum made with 63% sea buckthorn water. It helps brighten skin, reduce the look of spots and uneven tone, keeps skin smooth and fresh, and adds hydration.",
+    keyIngredients: ["Vitamin C", "Sea Buckthorn Water 63%"],
+    howToUse: "After cleansing, apply a few drops to the face and pat gently until absorbed. Follow with moisturizer, and sunscreen in the daytime.",
+    concerns: ["brightening", "hydration"],
+    images: ["dr-althea-vitamin-c-boosting-serum"]
+  },
+  {
+    slug: "tiam-vita-b3-source",
+    name: "TIAM Vita B3 Source",
+    brand: "TIAM",
+    category: "skincare",
+    skincareType: "serum",
+    size: "40ml",
+    price: null,
+    comingSoon: true,
+    badge: null,
+    summary: "A niacinamide serum for clear, even-toned, healthy-looking skin.",
+    whatItDoes: "A niacinamide serum that helps reduce dark spots and pigmentation, evens out skin tone, reduces dryness for smoother skin, controls excess oil to keep pores clean, and helps strengthen the skin's defences.",
+    keyIngredients: ["Niacinamide"],
+    howToUse: "After cleansing, apply a few drops to the face and pat gently until absorbed, then follow with moisturizer.",
+    concerns: ["brightening", "hydration"],
+    images: ["tiam-vita-b3-source"]
+  },
+  {
+    slug: "beauty-of-joseon-dynasty-cream",
+    name: "Beauty of Joseon Dynasty Cream",
+    brand: "Beauty of Joseon",
+    category: "skincare",
+    skincareType: "moisturizer",
+    size: "50ml",
+    price: null,
+    comingSoon: true,
+    badge: null,
+    whatItDoes: "A rich cream that deeply hydrates, soothes skin, strengthens the skin barrier and leaves skin smooth and healthy.",
+    howToUse: "Apply an even layer as the last step of your routine, morning and evening.",
+    concerns: ["hydration"],
+    images: ["beauty-of-joseon-dynasty-cream"]
+  },
+  {
+    slug: "medicube-pdrn-pink-collagen-capsule-cream",
+    name: "Medicube PDRN Pink Collagen Capsule Cream",
+    brand: "Medicube",
+    category: "skincare",
+    skincareType: "moisturizer",
+    size: "55g",
+    price: null,
+    comingSoon: true,
+    badge: null,
+    whatItDoes: "A capsule cream with PDRN and 5% niacinamide. It helps reduce dryness, keeps skin moisturized, helps fade the look of spots and uneven tone, and gives skin a bright, fresh look.",
+    keyIngredients: ["PDRN (Sodium DNA)", "Niacinamide 5%"],
+    howToUse: "Apply an even layer as the last step of your routine, morning and evening.",
+    concerns: ["hydration", "brightening"],
+    images: ["medicube-pdrn-pink-collagen-capsule-cream"]
+  },
+  {
+    slug: "dabo-all-in-one-black-snail-repair-cream",
+    name: "Dabo All In One Black Snail Repair Cream",
+    brand: "Dabo",
+    category: "skincare",
+    skincareType: "moisturizer",
+    size: "",
+    price: null,
+    comingSoon: true,
+    badge: null,
+    summary: "One cream, complete care — anti-wrinkle and whitening.",
+    whatItDoes: "An all-in-one black snail cream that deeply moisturizes, helps repair damaged skin, helps improve skin tone and helps maintain skin elasticity.",
+    keyIngredients: ["Black Snail Extract"],
+    howToUse: "Apply an even layer as the last step of your routine, morning and evening.",
+    concerns: ["hydration", "anti-aging", "brightening"],
+    images: ["dabo-all-in-one-black-snail-repair-cream"]
+  },
+  {
+    slug: "skin1004-hyalu-cica-water-fit-sun-serum",
+    name: "SKIN1004 Madagascar Centella Hyalu-Cica Water-Fit Sun Serum SPF50+ PA++++",
+    brand: "SKIN1004",
+    category: "skincare",
+    skincareType: "sunscreen",
+    size: "50ml",
+    price: null,
+    comingSoon: true,
+    badge: null,
+    whatItDoes: "A lightweight SPF50+ PA++++ sun serum with centella and hyaluronic acid. It protects against UV rays, hydrates and soothes, with a light, non-greasy finish.",
+    keyIngredients: ["Centella Asiatica (Madagascar)", "Hyaluronic Acid"],
+    howToUse: "Apply generously as the last step of your morning routine, 15 minutes before going out. Reapply every 2 hours in the sun.",
+    concerns: ["hydration"],
+    images: ["skin1004-hyalu-cica-water-fit-sun-serum"]
+  },
+  {
+    slug: "tiam-b3-niacin-sunscreen",
+    name: "TIAM B3 Niacin Sunscreen SPF50+ PA++++",
+    brand: "TIAM",
+    category: "skincare",
+    skincareType: "sunscreen",
+    size: "50ml",
+    price: null,
+    comingSoon: true,
+    badge: null,
+    summary: "Everyday sun protection for healthier, more even-looking skin.",
+    whatItDoes: "An SPF50+ PA++++ sunscreen with niacinamide (vitamin B3). It gives strong protection from UVA and UVB rays, helps skin tone look more even and bright, has a light, non-greasy formula that blends in easily, and helps protect skin from sun damage.",
+    keyIngredients: ["Niacinamide (Vitamin B3)"],
+    howToUse: "Apply generously as the last step of your morning routine, 15 minutes before going out. Reapply every 2 hours in the sun.",
+    suitableFor: "Everyday use, all skin types.",
+    skinTypes: ["normal", "dry", "oily", "combination", "sensitive"],
+    concerns: ["brightening"],
+    images: ["tiam-b3-niacin-sunscreen"]
   }
 ];
 

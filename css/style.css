@@ -983,3 +983,4 @@ h1, h2, h3, h4 { font-weight: 400; line-height: 1.15; }
 /* Checkout error */
 .order-error { font-size: 13px; color: #9a3b2c; background: #f9e9e6; border-left: 2px solid #9a3b2c; padding: 10px 12px; margin-bottom: 12px; }
 .order-error a { text-decoration: underline; text-underline-offset: 2px; }
+.pcard-badge.soon { background: var(--on-wine); color: var(--ink); border: 1px solid var(--line-strong); }

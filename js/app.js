@@ -94,18 +94,23 @@ const preorderOff = () => {
 const sizePrice = (slug, ml) => productSizes(bySlug(slug)).find(s => s.ml === ml)?.price ?? 0;
 const sizeLabel = (slug, ml) => productSizes(bySlug(slug)).find(s => s.ml === ml)?.label ?? `${ml}ml`;
 /* A product without a price yet ("price: null") is shown as "Price on request" and ordered via WhatsApp */
-const hasPrice = p => productSizes(p).every(s => typeof s.price === "number");
+/* `comingSoon: true` — listed with a "Coming soon" badge, no price, not orderable yet */
+const isComingSoon = p => !!p?.comingSoon;
+const hasPrice = p => !isComingSoon(p) && productSizes(p).every(s => typeof s.price === "number");
 const fromPrice = p => hasPrice(p) ? Math.min(...productSizes(p).map(s => s.price)) : null;
 const priceText = p => {
+  if (isComingSoon(p)) return "Coming soon";
   if (!hasPrice(p)) return "Price on request";
   const sizes = productSizes(p);
   const low = sizes.reduce((a, b) => (b.price < a.price ? b : a));
   return priceHTML(low, sizes.length > 1 ? "From " : "");
 };
-const askLink = p => waLink(`Hello AuroraBD! I'd like to order ${p.name}. What is the price?`);
+const askLink = p => isComingSoon(p)
+  ? waLink(`Hello AuroraBD! Please let me know when ${p.name} is available.`)
+  : waLink(`Hello AuroraBD! I'd like to order ${p.name}. What is the price?`);
 const askButton = p => waConfigured()
-  ? `<a class="btn btn-block" href="${askLink(p)}" target="_blank" rel="noopener">${icon("whatsapp")} Ask for price on WhatsApp</a>`
-  : `<a class="btn btn-block" href="contact.html">Contact us for the price</a>`;
+  ? `<a class="btn btn-block" href="${askLink(p)}" target="_blank" rel="noopener">${icon("whatsapp")} ${isComingSoon(p) ? "Notify me on WhatsApp" : "Ask for price on WhatsApp"}</a>`
+  : `<a class="btn btn-block" href="contact.html">${isComingSoon(p) ? "Contact us" : "Contact us for the price"}</a>`;
 
 const scentKeys = p => !isPerfume(p) ? [] : SCENT_FAMILIES.filter(f =>
   (f.match.family && f.match.family.test(p.family || "")) ||
@@ -166,6 +171,8 @@ const COLLECTIONS = (() => {
     filter: skin(p => skinCats(p).includes(k.key)), desc: `${k.label} — with what each product does, its key ingredients and how to use it.` }));
   add("preorder", { group: "skincare", title: "Skincare Pre-order", nav: "Pre-order", filter: p => isSkincare(p) && isPreorder(p),
     desc: AURORA.preorder ? `Pre-order Korean skincare at a discount — offer ends ${preorderEnds()}. Applies to skincare only.` : "" });
+  add("coming-soon", { group: "skincare", title: "Coming Soon", nav: "Coming Soon", filter: p => isComingSoon(p),
+    desc: "New skincare arriving at Aurora soon. Tap Notify me to hear first on WhatsApp when a product is available." });
   add("skincare-best-sellers", { group: "skincare", title: "Skincare Best Sellers", nav: "Best Sellers", filter: skin(p => p.badge === "Bestseller"),
     desc: "Our most-loved skincare." });
   add("skincare-new-arrivals", { group: "skincare", title: "New in Skincare", nav: "New Arrivals", filter: skin(p => p.badge === "New"),
@@ -193,7 +200,7 @@ const LEGACY_CAT = { him: "perfume-men", her: "perfume-women", unisex: "perfume-
 const SUB_NAV = {
   shop: ["all", "best-sellers", "new-arrivals", "featured", "perfume", "skincare"],
   perfume: ["perfume", "perfume-men", "perfume-women", "perfume-unisex", "perfume-oil", "roll-on"],
-  skincare: ["skincare", ...(preorderActive() ? ["preorder"] : []), ...SKINCARE_CATEGORIES.map(k => `skincare-${k.key}`)]
+  skincare: ["skincare", ...(preorderActive() ? ["preorder"] : []), ...(PRODUCTS.some(isComingSoon) ? ["coming-soon"] : []), ...SKINCARE_CATEGORIES.map(k => `skincare-${k.key}`)]
 };
 const GROUP_ROOT = { shop: "all", perfume: "perfume", skincare: "skincare" };
 
@@ -218,7 +225,7 @@ const NAV = [
   { key: "skincare", label: "Skincare", href: collUrl("skincare"), columns: [
       { title: "Category", links: ["skincare", ...SKINCARE_CATEGORIES.slice(0, 3).map(k => `skincare-${k.key}`)].map(navLink) },
       { title: "More", links: SKINCARE_CATEGORIES.slice(3).map(k => navLink(`skincare-${k.key}`)) },
-      { title: "Discover", links: [...(preorderActive() ? ["preorder"] : []), "skincare-best-sellers", "skincare-new-arrivals"].map(navLink) }
+      { title: "Discover", links: [...(preorderActive() ? ["preorder"] : []), ...(PRODUCTS.some(isComingSoon) ? ["coming-soon"] : []), "skincare-best-sellers", "skincare-new-arrivals"].map(navLink) }
     ], feature: "skincare-note" },
   { key: "contact", label: "Contact", href: "contact.html" }
 ];
@@ -464,7 +471,7 @@ const Search = {
       <a class="search-item" href="product.html?p=${p.slug}">
         <img src="${thumbSrc(p.images[0])}" alt="" loading="lazy" width="64" height="64">
         <div><strong>${esc(p.name)}</strong><span>${esc(productMeta(p))}</span></div>
-        <span class="price">${hasPrice(p) ? fmt(fromPrice(p)) : "Ask"}</span>
+        <span class="price">${hasPrice(p) ? fmt(fromPrice(p)) : isComingSoon(p) ? "Soon" : "Ask"}</span>
       </a>`).join("")}</div>`;
   },
   open() { Layer.open($("#searchPanel")); }
@@ -478,10 +485,10 @@ function productCard(p, opts = {}) {
   const priced = hasPrice(p);
   const shown = opts.size && priced ? sizes.find(s => s.ml === opts.size) : null;
   const price = shown ? `${priceHTML(shown)} <small>· ${shown.label}</small>` : priceText(p);
-  const badge = isPreorder(p) ? ["Pre-order", " pre"] : p.badge ? [p.badge === "Bestseller" ? "Best Seller" : p.badge, p.badge === "New" ? " new" : ""] : null;
+  const badge = isComingSoon(p) ? ["Coming Soon", " soon"] : isPreorder(p) ? ["Pre-order", " pre"] : p.badge ? [p.badge === "Bestseller" ? "Best Seller" : p.badge, p.badge === "New" ? " new" : ""] : null;
   const addTool = priced
     ? `<button class="tool" data-quickadd="${p.slug}" aria-label="Quick add ${esc(p.name)}" aria-expanded="false">${icon("plus")}<span>Quick add</span></button>`
-    : waConfigured() ? `<a class="tool" href="${askLink(p)}" target="_blank" rel="noopener" aria-label="Ask the price of ${esc(p.name)} on WhatsApp">${icon("whatsapp")}<span>Ask price</span></a>` : "";
+    : waConfigured() ? `<a class="tool" href="${askLink(p)}" target="_blank" rel="noopener" aria-label="${isComingSoon(p) ? `Get notified when ${esc(p.name)} is available` : `Ask the price of ${esc(p.name)}`} on WhatsApp">${icon("whatsapp")}<span>${isComingSoon(p) ? "Notify me" : "Ask price"}</span></a>` : "";
   const alt = p.images[1] ? `<img class="alt" src="${thumbSrc(p.images[1])}" alt="" loading="lazy" width="720" height="480">` : "";
   return `
     <article class="pcard" data-slug="${p.slug}" ${opts.reveal === false ? "" : "data-reveal"}>
@@ -617,7 +624,7 @@ const QuickView = {
         <a class="link full-link" href="product.html?p=${p.slug}">View full details ${icon("arrow")}</a>
       </div>`;
     const refresh = () => {
-      $("#qvPrice").innerHTML = hasPrice(p) ? priceHTML(productSizes(p).find(s => s.ml === size)) : "Price on request";
+      $("#qvPrice").innerHTML = hasPrice(p) ? priceHTML(productSizes(p).find(s => s.ml === size)) : priceText(p);
       $("#qvSizesLabel").textContent = sizeLabel(p.slug, size);
       if ($("#qvQty")) $("#qvQty").textContent = qty;
     };
@@ -1587,7 +1594,7 @@ function initProduct() {
   const priced = hasPrice(p);
   const refresh = () => {
     $("#pdpSizesLabel").textContent = sizeLabel(p.slug, size);
-    if (!priced) { $("#pdpPrice").textContent = "Price on request"; $("#barPrice").textContent = "Price on request"; return; }
+    if (!priced) { $("#pdpPrice").textContent = priceText(p); $("#barPrice").textContent = priceText(p); return; }
     const each = sizePrice(p.slug, size);
     const cur = productSizes(p).find(s => s.ml === size);
     $("#pdpPrice").innerHTML = qty > 1 ? `${fmt(each * qty)} <small class="muted" style="font-size:13px">(${qty} × ${fmt(each)})</small>` : priceHTML(cur);
@@ -1616,7 +1623,7 @@ function initProduct() {
   const bar = $("#buyBar");
   $("#barName").textContent = p.name;
   if (priced) $("#barAdd").addEventListener("click", () => Cart.add(p.slug, size, qty));
-  else if (waConfigured()) $("#barAdd").outerHTML = `<a class="btn" id="barAdd" href="${askLink(p)}" target="_blank" rel="noopener">Ask price</a>`;
+  else if (waConfigured()) $("#barAdd").outerHTML = `<a class="btn" id="barAdd" href="${askLink(p)}" target="_blank" rel="noopener">${isComingSoon(p) ? "Notify me" : "Ask price"}</a>`;
   if ("IntersectionObserver" in window) {
     new IntersectionObserver(([en]) => bar.classList.toggle("is-on", !en.isIntersecting && en.boundingClientRect.top < 0))
       .observe($("#addBtn"));
