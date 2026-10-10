@@ -663,9 +663,10 @@ const PRODUCTS = [
     brand: "Dr.Althea",
     category: "skincare",
     skincareType: "moisturizer",
-    size: "50ml",
-    price: 2250,
-    preorderPrice: 1575,
+    variants: [
+      { ml: 15, label: "15ml", price: 1200, preorderPrice: 840 },
+      { ml: 50, label: "50ml", price: 2250, preorderPrice: 1575 }
+    ],
     badge: null,
     whatItDoes: "A relief cream that soothes irritated and sensitive skin, helps repair a damaged skin barrier, deeply hydrates and locks in moisture, and strengthens skin for a healthier, smoother look.",
     howToUse: "Apply an even layer as the last step of your routine, morning and evening.",

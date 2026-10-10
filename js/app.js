@@ -674,7 +674,10 @@ const CUSTOMER_KEY = "aurora_customer_v1";
 const Cart = {
   view: "bag",     /* bag | checkout | done */
   lastOrder: null,
-  items() { return store.get(CART_KEY, []).filter(i => bySlug(i.slug) && hasPrice(bySlug(i.slug))); },
+  items() {
+    /* drop anything no longer orderable, including sizes that have since changed */
+    return store.get(CART_KEY, []).filter(i => { const p = bySlug(i.slug); return p && hasPrice(p) && productSizes(p).some(s => s.ml === i.size); });
+  },
   save(items) { store.set(CART_KEY, items); this.update(); },
   count() { return this.items().reduce((n, i) => n + i.qty, 0); },
   subtotal() { return this.items().reduce((n, i) => n + sizePrice(i.slug, i.size) * i.qty, 0); },
