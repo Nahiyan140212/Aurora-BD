@@ -807,9 +807,10 @@ const PRODUCTS = [
     brand: "Dabo",
     category: "skincare",
     skincareType: "cleanser",
-    size: "180ml",
-    price: 1150,
-    preorderPrice: 805,
+    variants: [
+      { ml: 100, label: "100ml", price: 650, preorderPrice: 455 },
+      { ml: 180, label: "180ml", price: 1150, preorderPrice: 805 }
+    ],
     badge: null,
     whatItDoes: "A rice ferment foaming cleanser that removes dirt and excess oil, keeps skin soft and smooth, helps even out skin tone and helps maintain the skin's natural balance.",
     keyIngredients: ["Fermented Rice"],
