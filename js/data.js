@@ -8,11 +8,14 @@ const AURORA = {
      open a chat here (country code + number). Orders are placed on the site. */
   whatsapp: "+8801911247619",
   currency: "৳", /* ৳ */
-  deliveryFee: 100,
-  deliveryNote: "Home delivery all over Bangladesh — flat ৳100",
+  /* Cash-on-delivery charge and delivery time by area — the customer picks one at checkout */
+  delivery: [
+    { key: "inside",  label: "Inside Dhaka",  fee: 70,  time: "1–2 days" },
+    { key: "outside", label: "Outside Dhaka", fee: 120, time: "2–4 days" }
+  ],
   /* Short messages for the announcement bar at the very top */
   announcements: [
-    "Flat ৳100 home delivery across Bangladesh",
+    "Delivery: ৳70 inside Dhaka · ৳120 outside Dhaka",
     "Cash on delivery",
     "Easy online ordering"
   ],

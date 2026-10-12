@@ -14,13 +14,13 @@ This is a static site with no build step. Review changes for:
   SKINCARE_CATEGORIES (or a list of them), a `brand`, a `size`, and a numeric `price` or
   `null` (shown as "Price on request" — never sold through the cart).
 - **Pricing**: perfume prices must come from AURORA.sizes
-  (10ml ৳300 · 15ml ৳400 · 30ml ৳650 · 50ml ৳850 · 100ml ৳1,700, delivery ৳100) or
+  (10ml ৳300 · 15ml ৳400 · 30ml ৳650 · 50ml ৳850 · 100ml ৳1,700) or
   PREMIUM_PRICES (৳350 · ৳450 · ৳750 · ৳1,000 · ৳1,800) — flag any hardcoded price in
   HTML that doesn't match these.
 - **Checkout (js/app.js, Cart.placeOrder)**: orders POST to Netlify Forms as form `order`; the
-  fields must match the hidden `order` form in index.html (order_id, channel, name, phone, address,
+  fields must match the hidden `order` form in index.html (order_id, channel, name, phone, address, delivery_area,
   note, items, subtotal, delivery, total, payment, preorder, placed_at). Items list name, size,
-  quantity and line total; totals include the ৳100 delivery. The bag empties only after a
+  quantity and line total; totals include the delivery charge for the chosen area (AURORA.delivery: Inside Dhaka ৳70, Outside Dhaka ৳120). The bag empties only after a
   successful submission, and a failed submission shows an error instead of a confirmation.
 - **Honest content**: no fabricated ratings, reviews, sales numbers, "authentic" or
   "free delivery" claims; empty categories must show as "Soon", never with fake products.

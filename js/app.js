@@ -615,7 +615,7 @@ const QuickView = {
         <h1>${esc(p.name)}</h1>
         <p class="summary">${esc(p.desc || p.whatItDoes || "")}</p>
         <p class="price" id="qvPrice"></p>
-        <p class="price-note">+ ${fmt(AURORA.deliveryFee)} delivery anywhere in Bangladesh</p>
+        <p class="price-note">Cash on delivery · Delivery: ${deliveryShort()}</p>
         ${variantPicker(sizes, size, "qvSizes")}
         ${hasPrice(p) ? `<div class="buy-row">
           ${qtyControl("qv")}
@@ -668,6 +668,16 @@ const qtyControl = id => `
 /* ============================================================
    Component: Cart drawer + WhatsApp checkout
    ============================================================ */
+/* Delivery areas (AURORA.delivery) — cash-on-delivery charge and time */
+const ZONES = AURORA.delivery || [];
+const zoneBy = key => ZONES.find(z => z.key === key);
+const deliverySummary = () => ZONES.map(z => `${z.label} ${fmt(z.fee)} (${z.time})`).join(" · ");
+const deliveryShort = () => ZONES.map(z => `${z.label} ${fmt(z.fee)}`).join(" · ");
+const feeRange = () => {
+  const f = ZONES.map(z => z.fee), lo = Math.min(...f), hi = Math.max(...f);
+  return lo === hi ? fmt(lo) : `${fmt(lo)}–${fmt(hi)}`;
+};
+
 const CART_KEY = "aurora_cart_v1";
 const CUSTOMER_KEY = "aurora_customer_v1";
 
@@ -699,6 +709,10 @@ const Cart = {
   remove(idx) { const items = this.items(); items.splice(idx, 1); this.save(items); },
   clear() { this.save([]); },
 
+  /* Delivery area chosen at checkout (remembered for next time) */
+  zoneKey() { return this.zone ?? store.get(CUSTOMER_KEY, {}).zone ?? null; },
+  fee() { return zoneBy(this.zoneKey())?.fee ?? null; },
+
   orderText(c, id) {
     const items = this.items();
     const lines = items.map(i => `• ${bySlug(i.slug).name}${sizeLabel(i.slug, i.size) ? ` — ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk${isPreorder(bySlug(i.slug)) ? " (pre-order)" : ""}`);
@@ -708,8 +722,8 @@ const Cart = {
       ...(id ? [`Order number: ${id}`] : []),
       ...lines,
       `Subtotal: ${this.subtotal()} Tk`,
-      `Delivery: ${AURORA.deliveryFee} Tk`,
-      `Total: ${this.subtotal() + AURORA.deliveryFee} Tk`,
+      `Delivery (${c.zone.label}, ${c.zone.time}): ${c.zone.fee} Tk`,
+      `Total: ${this.subtotal() + c.zone.fee} Tk`,
       ...(pre ? [`Pre-order skincare at the pre-order price (orders by ${preorderEnds()})`] : []),
       "",
       `Name: ${c.name}`,
@@ -743,26 +757,39 @@ const Cart = {
       else if (t.dataset.go) { this.view = t.dataset.go; this.update(); $("#cartBody").scrollTop = 0; }
       else if (t.dataset.finish !== undefined) { this.view = "bag"; this.lastOrder = null; Layer.close(el); }
     });
+    /* Picking a delivery area updates the totals without clearing what the customer typed */
+    el.addEventListener("change", e => {
+      if (e.target.name !== "zone") return;
+      this.zone = e.target.value;
+      e.target.closest(".field").classList.remove("has-error");
+      $("#coSum").innerHTML = this.sumHTML();
+      $("#coPay").textContent = this.payText();
+    });
     el.addEventListener("submit", e => {
       if (e.target.id !== "checkoutForm") return;
       e.preventDefault();
       if (this.busy) return;
       const f = e.target;
+      const zone = zoneBy(f.querySelector('input[name="zone"]:checked')?.value);
       const c = {
         name: f.name.value.trim(), phone: f.phone.value.trim(),
-        address: f.address.value.trim(), note: f.note.value.trim()
+        address: f.address.value.trim(), note: f.note.value.trim(), zone
       };
       let ok = true;
+      const flag = (field, valid, focusEl) => {
+        field.classList.toggle("has-error", !valid);
+        if (!valid && ok) { focusEl.focus(); ok = false; }
+      };
       const check = (name, valid) => {
-        f[name].closest(".field").classList.toggle("has-error", !valid);
         f[name].setAttribute("aria-invalid", String(!valid));
-        if (!valid && ok) { f[name].focus(); ok = false; }
+        flag(f[name].closest(".field"), valid, f[name]);
       };
       check("name", c.name.length > 1);
       check("phone", /^(\+?88)?01[3-9]\d{8}$/.test(c.phone.replace(/[\s-]/g, "")));
+      flag($("#coZone"), !!zone, f.querySelector('input[name="zone"]'));
       check("address", c.address.length > 5);
       if (!ok) return;
-      store.set(CUSTOMER_KEY, { name: c.name, phone: c.phone, address: c.address });
+      store.set(CUSTOMER_KEY, { name: c.name, phone: c.phone, address: c.address, zone: zone.key });
 
       const id = "AUR-" + new Date().toISOString().slice(2, 10).replace(/-/g, "") + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
       const viaWhatsApp = e.submitter?.value === "whatsapp" && waConfigured();
@@ -783,7 +810,7 @@ const Cart = {
     err.hidden = true;
 
     const items = this.items();
-    const subtotal = this.subtotal(), total = subtotal + AURORA.deliveryFee;
+    const subtotal = this.subtotal(), total = subtotal + c.zone.fee;
     const lines = items.map(i => {
       const name = bySlug(i.slug).name, size = sizeLabel(i.slug, i.size);
       return `${name}${size ? ` (${size})` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk${isPreorder(bySlug(i.slug)) ? " [pre-order]" : ""}`;
@@ -796,10 +823,11 @@ const Cart = {
       name: c.name,
       phone: c.phone,
       address: c.address,
+      delivery_area: `${c.zone.label} (${c.zone.time})`,
       note: c.note,
       items: lines.join("\n"),
       subtotal: `${subtotal} Tk`,
-      delivery: `${AURORA.deliveryFee} Tk`,
+      delivery: `${c.zone.fee} Tk`,
       total: `${total} Tk`,
       payment: "Cash on delivery",
       preorder: items.some(i => isPreorder(bySlug(i.slug))) ? `Yes — contains pre-order skincare (orders by ${preorderEnds()})` : "No",
@@ -831,12 +859,25 @@ const Cart = {
   },
   open() { this.update(); Layer.open($("#cartDrawer")); },
 
+  /* Checkout order summary — delivery and total follow the chosen area */
+  sumHTML() {
+    const items = this.items(), z = zoneBy(this.zoneKey());
+    return `
+      ${items.map(i => `<div><span>${esc(bySlug(i.slug).name)}${sizeLabel(i.slug, i.size) ? ` · ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty}</span><span>${fmt(sizePrice(i.slug, i.size) * i.qty)}</span></div>`).join("")}
+      <div><span>Delivery${z ? ` · ${z.label} (${z.time})` : ""}</span><span>${z ? fmt(z.fee) : "Choose area"}</span></div>
+      <div class="grand"><span>Total · Cash on delivery</span><span>${z ? fmt(this.subtotal() + z.fee) : `${fmt(this.subtotal())} + delivery`}</span></div>`;
+  },
+  payText() {
+    const z = zoneBy(this.zoneKey());
+    return z ? `Pay ${fmt(this.subtotal() + z.fee)} in cash when your order arrives — ${z.time}.` : "Choose your delivery area to see the total.";
+  },
+
   update() {
     $$(".cart-count").forEach(b => { const n = this.count(); b.textContent = n || ""; b.dataset.n = n; });
     const body = $("#cartBody"), foot = $("#cartFoot");
     if (!body) return;
     const items = this.items();
-    const total = this.subtotal() + AURORA.deliveryFee;
+    const shipNote = `<div class="ship-note">${icon("truck")}<span>Cash on delivery · ${deliverySummary()}</span></div>`;
     $("#cartTitle").textContent = { bag: "Your bag", checkout: "Delivery details", done: "Order placed" }[this.view];
 
     if (this.view === "done" && this.lastOrder) {
@@ -849,10 +890,10 @@ const Cart = {
           <div class="order-sum" style="text-align:left">
             <div><span>Order number</span><strong>${esc(o.id)}</strong></div>
             ${o.lines.map(l => `<div><span>${esc(l.text.replace(/ = \d+ Tk/, "").replace(" [pre-order]", " · Pre-order"))}</span><span>${fmt(l.amount)}</span></div>`).join("")}
-            <div><span>Delivery</span><span>${fmt(AURORA.deliveryFee)}</span></div>
+            <div><span>Delivery · ${esc(o.zone.label)}</span><span>${fmt(o.zone.fee)}</span></div>
             <div class="grand"><span>Total · Cash on delivery</span><span>${fmt(o.total)}</span></div>
           </div>
-          <p class="small" style="margin-top:16px">Delivering to ${esc(o.name)}, ${esc(o.address)}. We'll contact you at ${esc(o.phone)} about your delivery.</p>
+          <p class="small" style="margin-top:16px">Delivering to ${esc(o.name)}, ${esc(o.address)} — estimated delivery ${esc(o.zone.time)}. We'll contact you at ${esc(o.phone)} about your delivery.</p>
           ${o.waUrl ? (o.viaWhatsApp
             ? `<p class="small">We've also opened WhatsApp with your order &mdash; tap <strong>Send</strong> there. <a href="${o.waUrl}" target="_blank" rel="noopener" style="text-decoration:underline">Open WhatsApp again</a></p>`
             : `<p class="small"><a href="${o.waUrl}" target="_blank" rel="noopener" style="text-decoration:underline">Also send your order details on WhatsApp</a> (optional)</p>`) : ""}
@@ -869,19 +910,21 @@ const Cart = {
           <p>Your bag is empty.</p>
           <a class="btn btn-outline" href="${collUrl("perfume")}">Shop perfume</a>
         </div>`;
-      foot.innerHTML = `<div class="ship-note">${icon("truck")} Flat ${fmt(AURORA.deliveryFee)} delivery anywhere in Bangladesh · Cash on delivery</div>`;
+      foot.innerHTML = shipNote;
       return;
     }
 
+    const z = zoneBy(this.zoneKey());
     const totals = `
       <div class="totals">
         <div><span>Subtotal</span><span>${fmt(this.subtotal())}</span></div>
-        <div class="muted-row"><span>Delivery (all Bangladesh)</span><span>${fmt(AURORA.deliveryFee)}</span></div>
-        <div class="grand"><span>Total</span><span>${fmt(total)}</span></div>
+        <div class="muted-row"><span>Delivery${z ? ` (${z.label})` : ""}</span><span>${z ? fmt(z.fee) : feeRange()}</span></div>
+        <div class="grand"><span>Total</span><span>${z ? fmt(this.subtotal() + z.fee) : `${fmt(this.subtotal())} + delivery`}</span></div>
       </div>`;
 
     if (this.view === "checkout") {
       const c = store.get(CUSTOMER_KEY, {});
+      const sel = this.zoneKey();
       body.innerHTML = `
         <form id="checkoutForm" class="form-grid" novalidate>
           <div class="field">
@@ -894,6 +937,17 @@ const Cart = {
             <input id="co-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="01XXXXXXXXX" required value="${esc(c.phone || "")}">
             <p class="err">Please enter a valid Bangladeshi mobile number (01XXXXXXXXX).</p>
           </div>
+          <fieldset class="field zone-field" id="coZone">
+            <legend>Delivery area</legend>
+            <div class="zone-options">
+              ${ZONES.map(zn => `
+                <label class="zone-opt">
+                  <input type="radio" name="zone" value="${zn.key}" ${sel === zn.key ? "checked" : ""} required>
+                  <span><strong>${esc(zn.label)}</strong><small>${fmt(zn.fee)} · ${esc(zn.time)}</small></span>
+                </label>`).join("")}
+            </div>
+            <p class="err">Please choose your delivery area.</p>
+          </fieldset>
           <div class="field">
             <label for="co-address">Delivery address</label>
             <textarea id="co-address" name="address" autocomplete="street-address" placeholder="House, road, area, thana, district" required>${esc(c.address || "")}</textarea>
@@ -904,17 +958,13 @@ const Cart = {
             <input id="co-note" name="note" placeholder="e.g. preferred delivery time">
           </div>
         </form>
-        <div class="order-sum">
-          ${items.map(i => `<div><span>${esc(bySlug(i.slug).name)}${sizeLabel(i.slug, i.size) ? ` · ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty}</span><span>${fmt(sizePrice(i.slug, i.size) * i.qty)}</span></div>`).join("")}
-          <div><span>Delivery</span><span>${fmt(AURORA.deliveryFee)}</span></div>
-          <div class="grand"><span>Total · Cash on delivery</span><span>${fmt(total)}</span></div>
-        </div>
+        <div class="order-sum" id="coSum">${this.sumHTML()}</div>
         <button class="back-btn" data-go="bag">${icon("left")} Back to bag</button>`;
       foot.innerHTML = `
         <p class="order-error" id="orderError" role="alert" hidden></p>
         <button class="btn btn-block" type="submit" form="checkoutForm" id="placeOrderBtn">Place order</button>
         ${waConfigured() ? `<button class="btn btn-outline btn-block" type="submit" form="checkoutForm" name="via" value="whatsapp" id="placeOrderWa" style="margin-top:10px">${icon("whatsapp")} Place order on WhatsApp</button>` : ""}
-        <p class="cart-note">Pay ${fmt(total)} in cash when your order arrives.</p>`;
+        <p class="cart-note" id="coPay">${this.payText()}</p>`;
       return;
     }
 
@@ -937,7 +987,7 @@ const Cart = {
             <button class="rm" data-rm="${idx}">Remove</button>
           </div>
         </div>`;
-    }).join("") + `<div class="ship-note">${icon("truck")} Flat ${fmt(AURORA.deliveryFee)} delivery anywhere in Bangladesh · Cash on delivery</div>`;
+    }).join("") + shipNote;
     foot.innerHTML = `${totals}<button class="btn btn-block" data-go="checkout">Checkout</button>`;
   }
 };
@@ -1345,7 +1395,7 @@ function initCollection() {
   $$(".nav-link").forEach(a => a.classList.toggle("is-current", a.getAttribute("href") === collUrl(GROUP_ROOT[col.group])));
 
   document.title = `${col.title} — AuroraBD`;
-  $('meta[name="description"]')?.setAttribute("content", `${col.desc} Shop ${col.title.toLowerCase()} at AuroraBD with flat ৳${AURORA.deliveryFee} delivery across Bangladesh and cash on delivery.`);
+  $('meta[name="description"]')?.setAttribute("content", `${col.desc} Shop ${col.title.toLowerCase()} at AuroraBD — cash on delivery across Bangladesh (${deliveryShort()}).`);
 
   /* Collection header */
   const rootSlug = GROUP_ROOT[col.group];
@@ -1553,7 +1603,7 @@ function initProduct() {
       <h1>${esc(p.name)}</h1>
       <p class="summary">${esc(summary)}</p>
       <p class="price" id="pdpPrice"></p>
-      <p class="price-note">Cash on delivery · + ${fmt(AURORA.deliveryFee)} delivery anywhere in Bangladesh</p>
+      <p class="price-note">Cash on delivery · Delivery: ${deliveryShort()}</p>
       <p class="preorder-note" id="pdpPreorder"></p>
       ${variantPicker(sizes, size, "pdpSizes")}
       ${hasPrice(p) ? `<div class="opt-head">Quantity</div>
@@ -1563,7 +1613,7 @@ function initProduct() {
       </div>
       <button class="btn btn-outline btn-block" id="buyNow">Buy now</button>` : `<div id="addBtn">${askButton(p)}</div>`}
       <ul class="assurance">
-        <li>${icon("truck")}<span><strong>Delivery across Bangladesh</strong>Flat ${fmt(AURORA.deliveryFee)}, delivered to your door.</span></li>
+        <li>${icon("truck")}<span><strong>Delivery across Bangladesh</strong>${ZONES.map(z => `${z.label}: ${fmt(z.fee)} · ${z.time}`).join("<br>")}</span></li>
         <li>${icon("cash")}<span><strong>Cash on delivery</strong>Pay when your order arrives. We confirm every order by phone first.</span></li>
         ${waConfigured() ? `<li>${icon("chat")}<span><strong>Questions?</strong><a href="${waLink(`Hello AuroraBD! I have a question about ${p.name}.`)}" target="_blank" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Ask us on WhatsApp</a> — we're happy to help you choose.</span></li>` : ""}
       </ul>
@@ -1668,7 +1718,7 @@ function initContact() {
     if (waConfigured()) { a.href = waLink(a.dataset.wa || "Hello AuroraBD! I have a question."); a.target = "_blank"; a.rel = "noopener"; }
     else a.remove();
   });
-  $$("[data-delivery-fee]").forEach(el => { el.textContent = fmt(AURORA.deliveryFee); });
+  $$("[data-delivery-summary]").forEach(el => { el.textContent = deliverySummary(); });
   $$("[data-whatsapp-number]").forEach(el => { el.textContent = AURORA.whatsapp; });
 }
 

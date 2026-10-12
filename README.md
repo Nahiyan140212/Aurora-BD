@@ -28,7 +28,7 @@ collection, `/products/creed-aventus` → that product page.
   "Also send your order details on WhatsApp" link.
 - **Product page → Buy now** — adds the item and jumps straight to checkout.
 - Each order records: order number, channel, items (size × qty, line totals, pre-order flag),
-  subtotal, ৳100 delivery, total, payment (cash on delivery), name, phone, address, note
+  subtotal, delivery area and charge, total, payment (cash on delivery), name, phone, address, note
   and the time placed (Bangladesh time).
 
 **Seeing orders:** Netlify → your site → **Forms → order**. To get an email for every new
@@ -70,7 +70,10 @@ products list `skinTypes` / `concerns`.
 `images/products/thumb/<slug>.jpg` (720×480). Cards crop to a centred square. Skincare photos are square: full ≈1254×1254, thumb 720×720.
 
 Default sizes: 10ml ৳300 · 15ml ৳400 · 30ml ৳650 · 50ml ৳850 · 100ml ৳1,700.
-Premium: ৳350 · ৳450 · ৳750 · ৳1,000 · ৳1,800. Delivery ৳100 flat.
+Premium: ৳350 · ৳450 · ৳750 · ৳1,000 · ৳1,800.
+
+**Delivery** (cash on delivery) is set in `AURORA.delivery`: Inside Dhaka ৳70 (1–2 days),
+Outside Dhaka ৳120 (2–4 days). The customer picks their area at checkout.
 
 ## 📁 Structure
 
