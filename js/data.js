@@ -811,7 +811,7 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "cleanser",
     variants: [
-      { ml: 100, label: "100ml", price: 650, preorderPrice: 455 },
+      { ml: 100, label: "100ml", price: 700, preorderPrice: 490 },
       { ml: 180, label: "180ml", price: 1150, preorderPrice: 805 }
     ],
     badge: null,
