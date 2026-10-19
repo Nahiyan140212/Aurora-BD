@@ -741,7 +741,7 @@ const PRODUCTS = [
     brand: "Arencia",
     category: "skincare",
     skincareType: ["moisturizer", "eye-care"],
-    size: "50ml",
+    size: "30ml",
     price: 1850,
     preorderPrice: 1295,
     badge: null,
