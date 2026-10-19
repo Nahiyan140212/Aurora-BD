@@ -26,6 +26,14 @@ const AURORA = {
     endsAt: "2026-10-19T23:59:59+06:00",
     note: "The pre-order discount applies to skincare only."
   },
+  /* Skincare sale — every priced skincare product is `percent`% off its regular price.
+     endsAt: null runs until switched off; set a date (e.g. "2026-11-30T23:59:59+06:00")
+     to end it automatically. Set skincareSale to null to switch it off. */
+  skincareSale: {
+    percent: 20,
+    endsAt: null,
+    note: "The discount applies to skincare only."
+  },
   /* Social profile links — fill in to show icons in the footer.
      Leave "" to hide an icon. */
   social: {

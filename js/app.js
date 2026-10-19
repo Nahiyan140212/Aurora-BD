@@ -67,21 +67,32 @@ const preorderActive = () => {
   const po = AURORA.preorder;
   return !!po && Date.now() <= new Date(po.endsAt).getTime();
 };
-const withPreorder = s => {
-  const on = preorderActive() && typeof s.preorderPrice === "number";
-  return { ml: s.ml, label: s.label, regular: s.price, price: on ? s.preorderPrice : s.price, preorder: on };
+/* Skincare sale: while AURORA.skincareSale is set (and not past its optional endsAt),
+   every priced skincare size is `percent`% off its regular price */
+const saleActive = () => {
+  const sale = AURORA.skincareSale;
+  return !!sale && sale.percent > 0 && (!sale.endsAt || Date.now() <= new Date(sale.endsAt).getTime());
+};
+const salePct = () => (saleActive() ? AURORA.skincareSale.percent : 0);
+/* Pre-order price wins while the pre-order runs; otherwise the skincare sale applies */
+const withDiscount = (s, p) => {
+  const pre = preorderActive() && typeof s.preorderPrice === "number";
+  const sale = !pre && typeof s.price === "number" && isSkincare(p) && !isComingSoon(p) && saleActive();
+  const price = pre ? s.preorderPrice : sale ? Math.round(s.price * (100 - salePct()) / 100) : s.price;
+  return { ml: s.ml, label: s.label, regular: s.price, price, preorder: pre, sale, discounted: pre || sale };
 };
 /* Sizes: product `variants` replace the shared list; `prices` override it.
-   `price` is what the customer pays now; `regular` is the price outside the pre-order. */
+   `price` is what the customer pays now; `regular` is the price without any discount. */
 const productSizes = p => (p?.variants
   ? p.variants.map(v => ({ ml: v.ml, price: v.price ?? null, preorderPrice: v.preorderPrice, label: v.label ?? `${v.ml}ml` }))
   : p && isSkincare(p) ? [{ ml: 1, price: p.price ?? null, preorderPrice: p.preorderPrice, label: p.size || "" }]
   : AURORA.sizes.map(s => ({ ml: s.ml, price: p?.prices?.[s.ml] ?? s.price, label: `${s.ml}ml` }))
-).map(withPreorder);
+).map(s => withDiscount(s, p));
 const isPreorder = p => productSizes(p).some(s => s.preorder);
-const discountPct = s => s.preorder && s.regular ? Math.round((1 - s.price / s.regular) * 100) : 0;
-/* Price with the regular price struck through while a pre-order discount applies */
-const priceHTML = (s, prefix = "") => s.preorder
+const isOnSale = p => productSizes(p).some(s => s.sale);
+const discountPct = s => s.discounted && s.regular ? Math.round((1 - s.price / s.regular) * 100) : 0;
+/* Price with the regular price struck through while a discount applies */
+const priceHTML = (s, prefix = "") => s.discounted
   ? `${prefix}${fmt(s.price)} <s class="was">${fmt(s.regular)}</s> <span class="off">−${discountPct(s)}%</span>`
   : `${prefix}${fmt(s.price)}`;
 const preorderEnds = () => new Date(AURORA.preorder.endsAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "Asia/Dhaka" });
@@ -715,7 +726,7 @@ const Cart = {
 
   orderText(c, id) {
     const items = this.items();
-    const lines = items.map(i => `• ${bySlug(i.slug).name}${sizeLabel(i.slug, i.size) ? ` — ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk${isPreorder(bySlug(i.slug)) ? " (pre-order)" : ""}`);
+    const lines = items.map(i => `• ${bySlug(i.slug).name}${sizeLabel(i.slug, i.size) ? ` — ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk${isPreorder(bySlug(i.slug)) ? " (pre-order)" : isOnSale(bySlug(i.slug)) ? ` (${salePct()}% off)` : ""}`);
     const pre = items.some(i => isPreorder(bySlug(i.slug)));
     return [
       "Hello AuroraBD! I would like to place an order:",
@@ -813,7 +824,7 @@ const Cart = {
     const subtotal = this.subtotal(), total = subtotal + c.zone.fee;
     const lines = items.map(i => {
       const name = bySlug(i.slug).name, size = sizeLabel(i.slug, i.size);
-      return `${name}${size ? ` (${size})` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk${isPreorder(bySlug(i.slug)) ? " [pre-order]" : ""}`;
+      return `${name}${size ? ` (${size})` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk${isPreorder(bySlug(i.slug)) ? " [pre-order]" : isOnSale(bySlug(i.slug)) ? ` [${salePct()}% off]` : ""}`;
     });
     const fields = {
       "form-name": "order",
@@ -889,7 +900,7 @@ const Cart = {
           <p>Your order has been successfully placed and confirmed. We appreciate your trust in us and look forward to serving you.</p>
           <div class="order-sum" style="text-align:left">
             <div><span>Order number</span><strong>${esc(o.id)}</strong></div>
-            ${o.lines.map(l => `<div><span>${esc(l.text.replace(/ = \d+ Tk/, "").replace(" [pre-order]", " · Pre-order"))}</span><span>${fmt(l.amount)}</span></div>`).join("")}
+            ${o.lines.map(l => `<div><span>${esc(l.text.replace(/ = \d+ Tk/, "").replace(" [pre-order]", " · Pre-order").replace(/ \[(\d+% off)\]/, " · $1"))}</span><span>${fmt(l.amount)}</span></div>`).join("")}
             <div><span>Delivery · ${esc(o.zone.label)}</span><span>${fmt(o.zone.fee)}</span></div>
             <div class="grand"><span>Total · Cash on delivery</span><span>${fmt(o.total)}</span></div>
           </div>
@@ -1652,7 +1663,9 @@ function initProduct() {
     const cur = productSizes(p).find(s => s.ml === size);
     $("#pdpPrice").innerHTML = qty > 1 ? `${fmt(each * qty)} <small class="muted" style="font-size:13px">(${qty} × ${fmt(each)})</small>` : priceHTML(cur);
     const note = $("#pdpPreorder");
-    if (note) note.innerHTML = cur.preorder ? `<strong>Pre-order price — ${discountPct(cur)}% off</strong> until ${preorderEnds()}. Regular price ${fmt(cur.regular)}. ${esc(AURORA.preorder.note || "")}` : "";
+    if (note) note.innerHTML = cur.preorder
+      ? `<strong>Pre-order price — ${discountPct(cur)}% off</strong> until ${preorderEnds()}. Regular price ${fmt(cur.regular)}. ${esc(AURORA.preorder.note || "")}`
+      : cur.sale ? `<strong>${discountPct(cur)}% off all skincare.</strong> Regular price ${fmt(cur.regular)}. ${esc(AURORA.skincareSale.note || "")}` : "";
     $("#pdpQty").textContent = qty;
     $("#barPrice").textContent = [sizeLabel(p.slug, size), fmt(each)].filter(Boolean).join(" · ");
   };
