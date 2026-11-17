@@ -107,21 +107,25 @@ const sizeLabel = (slug, ml) => productSizes(bySlug(slug)).find(s => s.ml === ml
 /* A product without a price yet ("price: null") is shown as "Price on request" and ordered via WhatsApp */
 /* `comingSoon: true` — listed with a "Coming soon" badge, no price, not orderable yet */
 const isComingSoon = p => !!p?.comingSoon;
-const hasPrice = p => !isComingSoon(p) && productSizes(p).every(s => typeof s.price === "number");
+/* `outOfStock: true` — still listed, shows "Out of stock", not orderable until restocked */
+const isOutOfStock = p => !!p?.outOfStock;
+const isUnavailable = p => isComingSoon(p) || isOutOfStock(p);
+const hasPrice = p => !isUnavailable(p) && productSizes(p).every(s => typeof s.price === "number");
 const fromPrice = p => hasPrice(p) ? Math.min(...productSizes(p).map(s => s.price)) : null;
 const priceText = p => {
   if (isComingSoon(p)) return "Coming soon";
+  if (isOutOfStock(p)) return "Out of stock";
   if (!hasPrice(p)) return "Price on request";
   const sizes = productSizes(p);
   const low = sizes.reduce((a, b) => (b.price < a.price ? b : a));
   return priceHTML(low, sizes.length > 1 ? "From " : "");
 };
-const askLink = p => isComingSoon(p)
+const askLink = p => isUnavailable(p)
   ? waLink(`Hello AuroraBD! Please let me know when ${p.name} is available.`)
   : waLink(`Hello AuroraBD! I'd like to order ${p.name}. What is the price?`);
 const askButton = p => waConfigured()
-  ? `<a class="btn btn-block" href="${askLink(p)}" target="_blank" rel="noopener">${icon("whatsapp")} ${isComingSoon(p) ? "Notify me on WhatsApp" : "Ask for price on WhatsApp"}</a>`
-  : `<a class="btn btn-block" href="contact.html">${isComingSoon(p) ? "Contact us" : "Contact us for the price"}</a>`;
+  ? `<a class="btn btn-block" href="${askLink(p)}" target="_blank" rel="noopener">${icon("whatsapp")} ${isUnavailable(p) ? "Notify me on WhatsApp" : "Ask for price on WhatsApp"}</a>`
+  : `<a class="btn btn-block" href="contact.html">${isUnavailable(p) ? "Contact us" : "Contact us for the price"}</a>`;
 
 const scentKeys = p => !isPerfume(p) ? [] : SCENT_FAMILIES.filter(f =>
   (f.match.family && f.match.family.test(p.family || "")) ||
@@ -482,7 +486,7 @@ const Search = {
       <a class="search-item" href="product.html?p=${p.slug}">
         <img src="${thumbSrc(p.images[0])}" alt="" loading="lazy" width="64" height="64">
         <div><strong>${esc(p.name)}</strong><span>${esc(productMeta(p))}</span></div>
-        <span class="price">${hasPrice(p) ? fmt(fromPrice(p)) : isComingSoon(p) ? "Soon" : "Ask"}</span>
+        <span class="price">${hasPrice(p) ? fmt(fromPrice(p)) : isComingSoon(p) ? "Soon" : isOutOfStock(p) ? "Out" : "Ask"}</span>
       </a>`).join("")}</div>`;
   },
   open() { Layer.open($("#searchPanel")); }
@@ -496,10 +500,10 @@ function productCard(p, opts = {}) {
   const priced = hasPrice(p);
   const shown = opts.size && priced ? sizes.find(s => s.ml === opts.size) : null;
   const price = shown ? `${priceHTML(shown)} <small>· ${shown.label}</small>` : priceText(p);
-  const badge = isComingSoon(p) ? ["Coming Soon", " soon"] : isPreorder(p) ? ["Pre-order", " pre"] : p.badge ? [p.badge === "Bestseller" ? "Best Seller" : p.badge, p.badge === "New" ? " new" : ""] : null;
+  const badge = isComingSoon(p) ? ["Coming Soon", " soon"] : isOutOfStock(p) ? ["Out of Stock", " soon"] : isPreorder(p) ? ["Pre-order", " pre"] : p.badge ? [p.badge === "Bestseller" ? "Best Seller" : p.badge, p.badge === "New" ? " new" : ""] : null;
   const addTool = priced
     ? `<button class="tool" data-quickadd="${p.slug}" aria-label="Quick add ${esc(p.name)}" aria-expanded="false">${icon("plus")}<span>Quick add</span></button>`
-    : waConfigured() ? `<a class="tool" href="${askLink(p)}" target="_blank" rel="noopener" aria-label="${isComingSoon(p) ? `Get notified when ${esc(p.name)} is available` : `Ask the price of ${esc(p.name)}`} on WhatsApp">${icon("whatsapp")}<span>${isComingSoon(p) ? "Notify me" : "Ask price"}</span></a>` : "";
+    : waConfigured() ? `<a class="tool" href="${askLink(p)}" target="_blank" rel="noopener" aria-label="${isUnavailable(p) ? `Get notified when ${esc(p.name)} is available` : `Ask the price of ${esc(p.name)}`} on WhatsApp">${icon("whatsapp")}<span>${isUnavailable(p) ? "Notify me" : "Ask price"}</span></a>` : "";
   const alt = p.images[1] ? `<img class="alt" src="${thumbSrc(p.images[1])}" alt="" loading="lazy" width="720" height="480">` : "";
   return `
     <article class="pcard" data-slug="${p.slug}" ${opts.reveal === false ? "" : "data-reveal"}>
@@ -1610,7 +1614,7 @@ function initProduct() {
       ${thumbs}
     </div>
     <div class="buybox">
-      <p class="meta-line">${skinProduct ? esc(productMeta(p)) : `${esc(GENDER[p.tag] || "")}${p.badge ? ` · ${p.badge === "Bestseller" ? "Best Seller" : esc(p.badge)}` : ""}`}</p>
+      <p class="meta-line">${skinProduct ? esc(productMeta(p)) : `${esc(GENDER[p.tag] || "")}${isOutOfStock(p) ? " · Out of Stock" : p.badge ? ` · ${p.badge === "Bestseller" ? "Best Seller" : esc(p.badge)}` : ""}`}</p>
       <h1>${esc(p.name)}</h1>
       <p class="summary">${esc(summary)}</p>
       <p class="price" id="pdpPrice"></p>
@@ -1689,7 +1693,7 @@ function initProduct() {
   const bar = $("#buyBar");
   $("#barName").textContent = p.name;
   if (priced) $("#barAdd").addEventListener("click", () => Cart.add(p.slug, size, qty));
-  else if (waConfigured()) $("#barAdd").outerHTML = `<a class="btn" id="barAdd" href="${askLink(p)}" target="_blank" rel="noopener">${isComingSoon(p) ? "Notify me" : "Ask price"}</a>`;
+  else if (waConfigured()) $("#barAdd").outerHTML = `<a class="btn" id="barAdd" href="${askLink(p)}" target="_blank" rel="noopener">${isUnavailable(p) ? "Notify me" : "Ask price"}</a>`;
   if ("IntersectionObserver" in window) {
     new IntersectionObserver(([en]) => bar.classList.toggle("is-on", !en.isIntersecting && en.boundingClientRect.top < 0))
       .observe($("#addBtn"));

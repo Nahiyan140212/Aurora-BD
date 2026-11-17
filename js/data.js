@@ -70,6 +70,7 @@ const AURORA = {
    price:        regular price, or null to show "Price on request"
    preorderPrice: price while AURORA.preorder is running (optional)
    comingSoon:   true to list a product as "Coming soon" (no price, not orderable)
+   outOfStock:   true to show a product as "Out of stock" (not orderable until removed)
    skincareType: a key from SKINCARE_CATEGORIES (e.g. "serum"), or a list
    summary:      optional one-line intro under the product name
    skinTypes:    keys from SKIN_TYPES (e.g. ["oily", "combination"])
@@ -251,6 +252,7 @@ const PRODUCTS = [
     tag: "For Him",
     family: "Aromatic Aquatic",
     badge: "New",
+    outOfStock: true,
     desc: "Green apple and lotus carried on a sea breeze, settling into soft musk and woods — easy, clean and fresh all day.",
     top: ["Green Notes", "Apple", "Lotus"],
     heart: ["Musk", "Mimosa", "Cedar"],
