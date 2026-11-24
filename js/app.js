@@ -58,6 +58,8 @@ const GENDER = { "For Him": "Men", "For Her": "Women", "Unisex": "Unisex" };
 const PERFUME_TYPES = { spray: "Perfume", oil: "Perfume Oil", "roll-on": "Roll-On Oil" };
 const isPerfume = p => (p.category || "perfume") === "perfume";
 const isSkincare = p => p.category === "skincare";
+/* `category: "combo"` — a set the customer builds from individual perfumes (e.g. 5 roll-ons) */
+const isCombo = p => p?.category === "combo";
 const perfumeType = p => p.type || "spray";
 const notesOf = p => [...(p.top || []), ...(p.heart || []), ...(p.base || [])];
 const labelOf = (list, key) => list.find(x => x.key === key)?.label || key;
@@ -79,15 +81,30 @@ const withDiscount = (s, p) => {
   const pre = preorderActive() && typeof s.preorderPrice === "number";
   const sale = !pre && typeof s.price === "number" && isSkincare(p) && !isComingSoon(p) && saleActive();
   const price = pre ? s.preorderPrice : sale ? Math.round(s.price * (100 - salePct()) / 100) : s.price;
-  return { ml: s.ml, label: s.label, regular: s.price, price, preorder: pre, sale, discounted: pre || sale };
+  return { ml: s.ml, label: s.label, format: s.format || null, regular: s.price, price, preorder: pre, sale, discounted: pre || sale };
+};
+/* Premium roll-on sizes for a perfume (AURORA.rollOn). Each size has a numeric `id` (e.g. 1007)
+   so it never clashes with a spray size of the same ml; its price follows the perfume's
+   10ml spray price tier, and a size without a price yet is left out. */
+const FORMAT_LABELS = { spray: "Spray Perfume", "roll-on": "Premium Roll-On Perfume" };
+const rollOnSizes = p => {
+  const ro = AURORA.rollOn;
+  if (!ro || !p || !isPerfume(p)) return [];
+  const spray10 = p.prices?.[10] ?? AURORA.sizes.find(s => s.ml === 10)?.price;
+  const tier = ro.prices[spray10] || {};
+  return ro.sizes
+    .map(r => ({ ml: r.id, price: p.rollOnPrices?.[r.ml] ?? tier[r.ml], label: `${r.ml}ml Roll-On`, format: "roll-on" }))
+    .filter(s => typeof s.price === "number");
 };
 /* Sizes: product `variants` replace the shared list; `prices` override it.
    `price` is what the customer pays now; `regular` is the price without any discount. */
 const productSizes = p => (p?.variants
   ? p.variants.map(v => ({ ml: v.ml, price: v.price ?? null, preorderPrice: v.preorderPrice, label: v.label ?? `${v.ml}ml` }))
   : p && isSkincare(p) ? [{ ml: 1, price: p.price ?? null, preorderPrice: p.preorderPrice, label: p.size || "" }]
-  : AURORA.sizes.map(s => ({ ml: s.ml, price: p?.prices?.[s.ml] ?? s.price, label: `${s.ml}ml` }))
+  : [...AURORA.sizes.map(s => ({ ml: s.ml, price: p?.prices?.[s.ml] ?? s.price, label: `${s.ml}ml`, format: "spray" })), ...rollOnSizes(p)]
 ).map(s => withDiscount(s, p));
+/* "7ml Roll-On" → "7" — the number part of a size label */
+const sizeNum = s => s.label.replace(/ml.*$/i, "");
 const isPreorder = p => productSizes(p).some(s => s.preorder);
 const isOnSale = p => productSizes(p).some(s => s.sale);
 const discountPct = s => s.discounted && s.regular ? Math.round((1 - s.price / s.regular) * 100) : 0;
@@ -135,13 +152,20 @@ const scentKeys = p => !isPerfume(p) ? [] : SCENT_FAMILIES.filter(f =>
 /* skincareType may be one key or a list (e.g. ["moisturizer", "eye-care"]) */
 const skinCats = p => [].concat(p.skincareType || []);
 
-const productMeta = p => isSkincare(p)
+const productMeta = p => isCombo(p)
+  ? `Roll-On Combo Set · ${p.comboCount} × ${p.comboMl}ml`
+  : isSkincare(p)
   ? [p.brand, labelOf(SKINCARE_CATEGORIES, skinCats(p)[0]) || "Skincare"].filter(Boolean).join(" · ")
   : [GENDER[p.tag], perfumeType(p) === "spray" ? p.family : PERFUME_TYPES[perfumeType(p)]].filter(Boolean).join(" · ");
 
 const searchText = p => [p.name, p.brand, p.tag, GENDER[p.tag], p.family, productMeta(p), ...notesOf(p),
   ...(p.keyIngredients || []), ...skinCats(p).map(k => labelOf(SKINCARE_CATEGORIES, k)), ...scentKeys(p),
-  isSkincare(p) ? "skincare skin care" : "perfume fragrance"].join(" ").toLowerCase();
+  isSkincare(p) ? "skincare skin care" : "perfume fragrance roll-on roll on attar",
+  isCombo(p) ? "combo set gift bundle custom five" : ""].join(" ").toLowerCase();
+
+/* Perfumes that can go into a combo set: in stock and offering the combo's roll-on size */
+const comboChoices = combo => PRODUCTS.filter(p => isPerfume(p) && !isUnavailable(p)
+  && rollOnSizes(p).some(s => s.label.startsWith(`${combo.comboMl}ml`)));
 
 /* ============================================================
    Collections
@@ -161,7 +185,7 @@ const COLLECTIONS = (() => {
   add("featured", { title: "Featured", nav: "Featured Products", filter: p => FEATURED_SLUGS.includes(p.slug), order: FEATURED_SLUGS,
     desc: "A curated edit of signature Aurora fragrances." });
 
-  add("perfume", { group: "perfume", title: "Perfume", nav: "All Perfume", filter: isPerfume,
+  add("perfume", { group: "perfume", title: "Perfume", nav: "All Perfume", filter: p => isPerfume(p) || isCombo(p),
     desc: "Long-lasting fragrances for men, women and everyone — in sizes from 10ml to 100ml." });
   add("perfume-men", { group: "perfume", title: "Perfume for Men", nav: "For Men", filter: perf(p => p.tag === "For Him"),
     desc: "Fresh, woody and warm scents made for everyday confidence and evenings out." });
@@ -171,8 +195,11 @@ const COLLECTIONS = (() => {
     desc: "Scents without rules — made to be shared and worn by anyone." });
   add("perfume-oil", { group: "perfume", title: "Perfume Oil", filter: perf(p => perfumeType(p) === "oil"),
     desc: "Concentrated, alcohol-free fragrance oils that sit close to the skin." });
-  add("roll-on", { group: "perfume", title: "Roll-On Oil", filter: perf(p => perfumeType(p) === "roll-on"),
-    desc: "Pocket-size roll-on fragrance oils — easy to carry, easy to reapply." });
+  add("roll-on", { group: "perfume", title: "Premium Roll-On Perfume", nav: "Premium Roll-On", filter: perf(p => rollOnSizes(p).length > 0),
+    presetSize: AURORA.rollOn?.sizes[0]?.id,
+    desc: "Every Aurora fragrance as a pocket-size premium roll-on — easy to carry, easy to reapply, and the easiest way to try a new scent." });
+  add("roll-on-combo", { group: "perfume", title: "Roll-On Combo Set", nav: "Roll-On Combo Set", filter: isCombo,
+    desc: "Build your own set of five premium roll-on perfumes — choose any five fragrances you love." });
   add("perfume-best-sellers", { group: "perfume", title: "Best Selling Perfume", nav: "Best Sellers", filter: perf(p => p.badge === "Bestseller"),
     desc: "Our most-loved fragrances." });
   add("perfume-new-arrivals", { group: "perfume", title: "New Perfume Arrivals", nav: "New Arrivals", filter: perf(p => p.badge === "New"),
@@ -214,7 +241,7 @@ const LEGACY_CAT = { him: "perfume-men", her: "perfume-women", unisex: "perfume-
 
 const SUB_NAV = {
   shop: ["all", "best-sellers", "new-arrivals", "featured", "perfume", "skincare"],
-  perfume: ["perfume", "perfume-men", "perfume-women", "perfume-unisex", "perfume-oil", "roll-on"],
+  perfume: ["perfume", "perfume-men", "perfume-women", "perfume-unisex", "roll-on", "roll-on-combo", "perfume-oil"],
   skincare: ["skincare", ...(preorderActive() ? ["preorder"] : []), ...(PRODUCTS.some(isComingSoon) ? ["coming-soon"] : []), ...SKINCARE_CATEGORIES.map(k => `skincare-${k.key}`)]
 };
 const GROUP_ROOT = { shop: "all", perfume: "perfume", skincare: "skincare" };
@@ -234,9 +261,9 @@ const NAV = [
     ], feature: ["creed-aventus", "good-girl"] },
   { key: "perfume", label: "Perfume", href: collUrl("perfume"), columns: [
       { title: "Shop by", links: ["perfume-men", "perfume-women", "perfume-unisex", "perfume-best-sellers", "perfume-new-arrivals"].map(navLink) },
-      { title: "Type", links: [{ ...navLink("perfume"), label: "All Perfume" }, navLink("perfume-oil"), navLink("roll-on")] },
+      { title: "Type", links: [{ ...navLink("perfume"), label: "All Perfume" }, navLink("roll-on"), navLink("roll-on-combo"), navLink("perfume-oil")] },
       { title: "Scent family", links: SCENT_FAMILIES.map(f => navLink(`scent-${f.key}`)) }
-    ], feature: ["dior-sauvage", "miss-dior"] },
+    ], feature: ["premium-roll-on-combo-set", "dior-sauvage"] },
   { key: "skincare", label: "Skincare", href: collUrl("skincare"), columns: [
       { title: "Category", links: ["skincare", ...SKINCARE_CATEGORIES.slice(0, 3).map(k => `skincare-${k.key}`)].map(navLink) },
       { title: "More", links: SKINCARE_CATEGORIES.slice(3).map(k => navLink(`skincare-${k.key}`)) },
@@ -501,7 +528,10 @@ function productCard(p, opts = {}) {
   const shown = opts.size && priced ? sizes.find(s => s.ml === opts.size) : null;
   const price = shown ? `${priceHTML(shown)} <small>· ${shown.label}</small>` : priceText(p);
   const badge = isComingSoon(p) ? ["Coming Soon", " soon"] : isOutOfStock(p) ? ["Out of Stock", " soon"] : isPreorder(p) ? ["Pre-order", " pre"] : p.badge ? [p.badge === "Bestseller" ? "Best Seller" : p.badge, p.badge === "New" ? " new" : ""] : null;
-  const addTool = priced
+  const combo = isCombo(p);
+  const addTool = combo && priced
+    ? `<a class="tool" href="product.html?p=${p.slug}" aria-label="Build your ${esc(p.name)}">${icon("plus")}<span>Build your set</span></a>`
+    : priced
     ? `<button class="tool" data-quickadd="${p.slug}" aria-label="Quick add ${esc(p.name)}" aria-expanded="false">${icon("plus")}<span>Quick add</span></button>`
     : waConfigured() ? `<a class="tool" href="${askLink(p)}" target="_blank" rel="noopener" aria-label="${isUnavailable(p) ? `Get notified when ${esc(p.name)} is available` : `Ask the price of ${esc(p.name)}`} on WhatsApp">${icon("whatsapp")}<span>${isUnavailable(p) ? "Notify me" : "Ask price"}</span></a>` : "";
   const alt = p.images[1] ? `<img class="alt" src="${thumbSrc(p.images[1])}" alt="" loading="lazy" width="720" height="480">` : "";
@@ -514,24 +544,41 @@ function productCard(p, opts = {}) {
         ${badge ? `<span class="pcard-badge${badge[1]}">${esc(badge[0])}</span>` : ""}
       </a>
       <div class="pcard-tools">
-        <button class="tool qv" data-quickview="${p.slug}" aria-label="Quick view ${esc(p.name)}">${icon("eye")}<span>Quick view</span></button>
+        ${combo ? "" : `<button class="tool qv" data-quickview="${p.slug}" aria-label="Quick view ${esc(p.name)}">${icon("eye")}<span>Quick view</span></button>`}
         ${addTool}
       </div>
-      ${priced ? `<div class="pcard-sizes" aria-hidden="true">
+      ${priced && !combo ? `<div class="pcard-sizes" aria-hidden="true">
         <p>Choose size <button data-sizes-close aria-label="Close">${icon("close")}</button></p>
-        <div class="sizes">${sizes.map(s => `<button data-add="${p.slug}" data-ml="${s.ml}">${s.label}<small>${fmt(s.price)}</small></button>`).join("")}</div>
+        ${sizeGroups(sizes).map(g => `
+          ${g.format ? `<span class="grp">${g.format === "roll-on" ? "Roll-on" : "Spray"}</span>` : ""}
+          <div class="sizes">${g.sizes.map(s => `<button data-add="${p.slug}" data-ml="${s.ml}">${sizeNum(s)}ml<small>${fmt(s.price)}</small></button>`).join("")}</div>`).join("")}
       </div>` : ""}
       </div>
       <div class="pcard-body">
         <h3><a href="product.html?p=${p.slug}">${esc(p.name)}</a></h3>
         <p class="pcard-meta">${esc(productMeta(p))}</p>
         <p class="pcard-price${priced ? "" : " ask"}">${price}</p>
-        ${sizes.length > 1 ? `<p class="pcard-size-list">${sizes.map(s => s.label.replace("ml", "")).join(" · ")} ml</p>`
-          : sizes[0]?.label && sizes[0].ml ? `<p class="pcard-size-list">${esc(sizes[0].label)}</p>` : ""}
+        ${sizeLine(p, sizes)}
       </div>
     </article>`;
 }
 const productGrid = (list, opts = {}) => list.map(p => productCard(p, opts)).join("");
+
+/* Split sizes into Spray / Roll-On groups (one unnamed group for everything else) */
+function sizeGroups(sizes) {
+  const formats = [...new Set(sizes.map(s => s.format))];
+  if (formats.length < 2) return [{ format: null, sizes }];
+  return formats.map(f => ({ format: f, sizes: sizes.filter(s => s.format === f) }));
+}
+/* The small size line under a card: "Spray 10 · 15 · 30 · 50 · 100 ml · Roll-on 7 ml" */
+function sizeLine(p, sizes) {
+  if (isCombo(p)) return `<p class="pcard-size-list">${p.comboCount} roll-ons × ${p.comboMl}ml · your choice</p>`;
+  const groups = sizeGroups(sizes);
+  if (groups.length > 1) return `<p class="pcard-size-list">${groups.map(g =>
+    `${g.format === "roll-on" ? "Roll-on" : "Spray"} ${g.sizes.map(sizeNum).join(" · ")} ml`).join(" · ")}</p>`;
+  if (sizes.length > 1) return `<p class="pcard-size-list">${sizes.map(sizeNum).join(" · ")} ml</p>`;
+  return sizes[0]?.label && sizes[0].ml ? `<p class="pcard-size-list">${esc(sizes[0].label)}</p>` : "";
+}
 
 /* One delegated handler for every card on the page */
 function initCardActions() {
@@ -619,6 +666,7 @@ const QuickView = {
   open(slug) {
     const p = bySlug(slug);
     if (!p) return;
+    if (isCombo(p)) { location.href = `product.html?p=${p.slug}`; return; }   /* a combo is built on its own page */
     const sizes = productSizes(p);
     let size = sizes[0].ml, qty = 1;
     const box = $("#quickViewBox");
@@ -656,13 +704,17 @@ const QuickView = {
 
 function variantPicker(sizes, current, id) {
   if (sizes.length === 1) return `<div class="opt-head"${sizes[0].label ? "" : " hidden"}>Size <span id="${id}Label">${esc(sizes[0].label)}</span></div><div id="${id}" hidden></div>`;
+  const groups = sizeGroups(sizes);
+  const button = s => `
+        <button class="variant" role="radio" aria-checked="${s.ml === current}" data-ml="${s.ml}">
+          ${groups.length > 1 ? `${sizeNum(s)}ml` : s.label}${typeof s.price === "number" ? `<small>${fmt(s.price)}</small>` : ""}
+        </button>`;
   return `
     <div class="opt-head">Size <span id="${id}Label">${sizes.find(s => s.ml === current)?.label || ""}</span></div>
-    <div class="variant-grid" id="${id}" role="radiogroup" aria-label="Size">
-      ${sizes.map(s => `
-        <button class="variant" role="radio" aria-checked="${s.ml === current}" data-ml="${s.ml}">
-          ${s.label}${typeof s.price === "number" ? `<small>${fmt(s.price)}</small>` : ""}
-        </button>`).join("")}
+    <div id="${id}" role="radiogroup" aria-label="Size">
+      ${groups.map(g => `
+        ${g.format ? `<p class="variant-group">${FORMAT_LABELS[g.format]}</p>` : ""}
+        <div class="variant-grid">${g.sizes.map(button).join("")}</div>`).join("")}
     </div>`;
 }
 function bindVariantPicker(group, onChange) {
@@ -693,6 +745,9 @@ const feeRange = () => {
   return lo === hi ? fmt(lo) : `${fmt(lo)}–${fmt(hi)}`;
 };
 
+/* Names of the fragrances chosen for a combo set in the bag */
+const pickNames = i => (i.picks || []).map(s => bySlug(s)?.name || s).join(", ");
+
 const CART_KEY = "aurora_cart_v1";
 const CUSTOMER_KEY = "aurora_customer_v1";
 
@@ -700,16 +755,25 @@ const Cart = {
   view: "bag",     /* bag | checkout | done */
   lastOrder: null,
   items() {
-    /* drop anything no longer orderable, including sizes that have since changed */
-    return store.get(CART_KEY, []).filter(i => { const p = bySlug(i.slug); return p && hasPrice(p) && productSizes(p).some(s => s.ml === i.size); });
+    /* drop anything no longer orderable, including sizes that have since changed,
+       and combo sets whose chosen fragrances are no longer all available */
+    return store.get(CART_KEY, []).filter(i => {
+      const p = bySlug(i.slug);
+      if (!p || !hasPrice(p) || !productSizes(p).some(s => s.ml === i.size)) return false;
+      if (!isCombo(p)) return true;
+      const ok = comboChoices(p).map(x => x.slug);
+      return Array.isArray(i.picks) && i.picks.length === p.comboCount && i.picks.every(s => ok.includes(s));
+    });
   },
   save(items) { store.set(CART_KEY, items); this.update(); },
   count() { return this.items().reduce((n, i) => n + i.qty, 0); },
   subtotal() { return this.items().reduce((n, i) => n + sizePrice(i.slug, i.size) * i.qty, 0); },
-  add(slug, size, qty) {
+  /* `picks` — the fragrances chosen for a combo set; the same set with different picks is a separate line */
+  add(slug, size, qty, picks) {
     const items = this.items();
-    const hit = items.find(i => i.slug === slug && i.size === size);
-    if (hit) hit.qty += qty; else items.push({ slug, size, qty });
+    const key = picks ? picks.join("|") : "";
+    const hit = items.find(i => i.slug === slug && i.size === size && (i.picks || []).join("|") === key);
+    if (hit) hit.qty += qty; else items.push(picks ? { slug, size, qty, picks } : { slug, size, qty });
     this.view = "bag";
     this.save(items);
     this.open();
@@ -730,7 +794,7 @@ const Cart = {
 
   orderText(c, id) {
     const items = this.items();
-    const lines = items.map(i => `• ${bySlug(i.slug).name}${sizeLabel(i.slug, i.size) ? ` — ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk${isPreorder(bySlug(i.slug)) ? " (pre-order)" : isOnSale(bySlug(i.slug)) ? ` (${salePct()}% off)` : ""}`);
+    const lines = items.map(i => `• ${bySlug(i.slug).name}${sizeLabel(i.slug, i.size) ? ` — ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk${isPreorder(bySlug(i.slug)) ? " (pre-order)" : isOnSale(bySlug(i.slug)) ? ` (${salePct()}% off)` : ""}${i.picks ? `\n   Fragrances: ${pickNames(i)}` : ""}`);
     const pre = items.some(i => isPreorder(bySlug(i.slug)));
     return [
       "Hello AuroraBD! I would like to place an order:",
@@ -828,7 +892,7 @@ const Cart = {
     const subtotal = this.subtotal(), total = subtotal + c.zone.fee;
     const lines = items.map(i => {
       const name = bySlug(i.slug).name, size = sizeLabel(i.slug, i.size);
-      return `${name}${size ? ` (${size})` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk${isPreorder(bySlug(i.slug)) ? " [pre-order]" : isOnSale(bySlug(i.slug)) ? ` [${salePct()}% off]` : ""}`;
+      return `${name}${size ? ` (${size})` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk${isPreorder(bySlug(i.slug)) ? " [pre-order]" : isOnSale(bySlug(i.slug)) ? ` [${salePct()}% off]` : ""}${i.picks ? ` — Fragrances: ${pickNames(i)}` : ""}`;
     });
     const fields = {
       "form-name": "order",
@@ -878,7 +942,7 @@ const Cart = {
   sumHTML() {
     const items = this.items(), z = zoneBy(this.zoneKey());
     return `
-      ${items.map(i => `<div><span>${esc(bySlug(i.slug).name)}${sizeLabel(i.slug, i.size) ? ` · ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty}</span><span>${fmt(sizePrice(i.slug, i.size) * i.qty)}</span></div>`).join("")}
+      ${items.map(i => `<div><span>${esc(bySlug(i.slug).name)}${sizeLabel(i.slug, i.size) ? ` · ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty}${i.picks ? `<small class="picks">${esc(pickNames(i))}</small>` : ""}</span><span>${fmt(sizePrice(i.slug, i.size) * i.qty)}</span></div>`).join("")}
       <div><span>Delivery${z ? ` · ${z.label} (${z.time})` : ""}</span><span>${z ? fmt(z.fee) : "Choose area"}</span></div>
       <div class="grand"><span>Total · Cash on delivery</span><span>${z ? fmt(this.subtotal() + z.fee) : `${fmt(this.subtotal())} + delivery`}</span></div>`;
   },
@@ -991,6 +1055,7 @@ const Cart = {
           <div>
             <h3><a href="product.html?p=${p.slug}">${esc(p.name)}</a></h3>
             <p class="v">${[sizeLabel(i.slug, i.size), fmt(sizePrice(i.slug, i.size)), isPreorder(p) ? "Pre-order" : ""].filter(Boolean).join(" · ")}</p>
+            ${i.picks ? `<p class="v picks">${esc(pickNames(i))}</p>` : ""}
             <div class="qty">
               <button data-dec="${idx}" aria-label="Decrease quantity of ${esc(p.name)}">${icon("minus")}</button>
               <span>${i.qty}</span>
@@ -1102,7 +1167,7 @@ function initHome() {
   if (worlds) worlds.innerHTML = [
     { title: "Fragrance", slug: "perfume", image: "lattafa-khamrah", focus: "50% 50%",
       desc: "Long-lasting perfumes for men, women and everyone — from fresh and citrus to woody, sweet and oud. Sizes from 10ml.",
-      links: ["perfume-men", "perfume-women", "perfume-unisex", "perfume-best-sellers"] },
+      links: ["perfume-men", "perfume-women", "perfume-unisex", "perfume-best-sellers", "roll-on", "roll-on-combo"] },
     { title: "Skincare", slug: "skincare", image: "the-face-shop-rice-ceramide-moisturizing-cream", focus: "32% 50%",
       desc: "Korean skincare from COSRX, Anua, Beauty of Joseon, SKIN1004 and more — cleansers, serums, moisturizers and sunscreens.",
       links: SKINCARE_CATEGORIES.map(k => `skincare-${k.key}`) }
@@ -1242,29 +1307,40 @@ function initSizePicker() {
     50: "A generous size for your signature scent.",
     100: "The lowest price per ml."
   };
-  wrap.innerHTML = AURORA.sizes.map((s, i) =>
-    `<button role="radio" aria-checked="${i === 0}" data-ml="${s.ml}">${s.ml}<small>ml</small></button>`).join("");
-  const draw = ml => {
-    const reg = AURORA.sizes.find(s => s.ml === ml).price;
-    $("#sizeRegular").textContent = fmt(reg);
-    $("#sizeRegularPer").textContent = `${fmt(Math.round(reg / ml))} per ml`;
-    if (premium?.[ml]) {
-      $("#sizePremium").textContent = fmt(premium[ml]);
-      $("#sizePremiumPer").textContent = `${fmt(Math.round(premium[ml] / ml))} per ml`;
+  /* Spray sizes, then each priced roll-on size (priced by the 10ml spray tiers) */
+  const regTier = AURORA.sizes.find(s => s.ml === 10)?.price, premTier = premium?.[10];
+  const ro = AURORA.rollOn;
+  const options = [
+    ...AURORA.sizes.map(s => ({ key: s.ml, ml: s.ml, roll: false, reg: s.price, prem: premium?.[s.ml] })),
+    ...(ro ? ro.sizes.map(r => ({ key: r.id, ml: r.ml, roll: true, reg: ro.prices[regTier]?.[r.ml], prem: ro.prices[premTier]?.[r.ml] }))
+      .filter(o => typeof o.reg === "number") : [])
+  ];
+  wrap.innerHTML = options.map((o, i) =>
+    `<button role="radio" aria-checked="${i === 0}" data-key="${o.key}">${o.ml}<small>${o.roll ? "ml roll-on" : "ml"}</small></button>`).join("");
+  wrap.style.setProperty("--opts", options.length);
+  const draw = key => {
+    const o = options.find(x => x.key === key);
+    $("#sizeRegular").textContent = fmt(o.reg);
+    $("#sizeRegularPer").textContent = `${fmt(Math.round(o.reg / o.ml))} per ml`;
+    if (typeof o.prem === "number") {
+      $("#sizePremium").textContent = fmt(o.prem);
+      $("#sizePremiumPer").textContent = `${fmt(Math.round(o.prem / o.ml))} per ml`;
     }
-    $("#sizeNote").textContent = notes[ml] || "";
+    $("#sizeNote").textContent = o.roll
+      ? "A pocket-size premium roll-on — easy to carry, easy to reapply."
+      : notes[o.ml] || "";
     const cta = $("#sizeCta");
-    cta.href = `shop.html?c=perfume&size=${ml}`;
-    cta.textContent = `Shop ${ml}ml perfumes`;
+    cta.href = o.roll ? `shop.html?c=roll-on&size=${o.key}` : `shop.html?c=perfume&size=${o.key}`;
+    cta.textContent = o.roll ? `Shop ${o.ml}ml roll-ons` : `Shop ${o.ml}ml perfumes`;
   };
   const btns = $$("button", wrap);
   btns.forEach(b => b.addEventListener("click", () => {
     btns.forEach(x => x.setAttribute("aria-checked", "false"));
     b.setAttribute("aria-checked", "true");
-    draw(+b.dataset.ml);
+    draw(+b.dataset.key);
   }));
   if (!premium) $("#sizePremiumBox")?.remove();
-  draw(AURORA.sizes[0].ml);
+  draw(options[0].key);
 }
 
 /* Featured — Fragrance | Skincare tabs */
@@ -1443,7 +1519,7 @@ function initCollection() {
 
   /* Facets — only the ones that actually split this collection */
   const facetDefs = [
-    { key: "category", title: "Category", of: p => [isSkincare(p) ? "skincare" : "perfume"], label: k => ({ perfume: "Perfume", skincare: "Skincare" })[k] },
+    { key: "category", title: "Category", of: p => [isSkincare(p) ? "skincare" : isCombo(p) ? "combo" : "perfume"], label: k => ({ perfume: "Perfume", skincare: "Skincare", combo: "Combo Set" })[k] },
     { key: "gender", title: "Gender", of: p => isPerfume(p) && p.tag ? [p.tag] : [], label: k => GENDER[k], order: ["For Him", "For Her", "Unisex"] },
     { key: "type", title: "Type", of: p => isPerfume(p) ? [perfumeType(p)] : [], label: k => PERFUME_TYPES[k] },
     { key: "scent", title: "Scent family", of: scentKeys, label: k => labelOf(SCENT_FAMILIES, k), order: SCENT_FAMILIES.map(f => f.key) },
@@ -1463,9 +1539,10 @@ function initCollection() {
   }).filter(f => f.keys.length > 1 || (f.key === "scent" && f.keys.length > 0 && !slug.startsWith("scent-") && base.length > 3));
 
   /* The size picker only makes sense where every product shares the perfume size list */
-  const allSizes = !base.every(isPerfume) ? [] : [...new Map(base.flatMap(productSizes).map(s => [s.ml, s])).values()].sort((a, b) => a.ml - b.ml);
+  const sizeBase = base.filter(isPerfume);
+  const allSizes = base.some(isSkincare) || !sizeBase.length ? [] : [...new Map(sizeBase.flatMap(productSizes).map(s => [s.ml, s])).values()].sort((a, b) => a.ml - b.ml);
   const state = { sel: Object.fromEntries(facetDefs.map(f => [f.key, new Set()])), size: null, sort: params.get("sort") || "featured" };
-  const presetSize = +params.get("size");
+  const presetSize = +params.get("size") || col.presetSize;
   if (allSizes.some(s => s.ml === presetSize)) state.size = presetSize;
 
   const facetsHTML = idp => facetDefs.map(f => `
@@ -1586,6 +1663,7 @@ function initProduct() {
   $('meta[name="description"]')?.setAttribute("content", metaDesc);
   $('meta[property="og:title"]')?.setAttribute("content", `${p.name} — AuroraBD`);
   $('meta[property="og:image"]')?.setAttribute("content", fullSrc(p.images[0]));
+  if (isCombo(p)) { initComboProduct(p, wrap); return; }
 
   const sizes = productSizes(p);
   let size = sizes.find(s => s.ml === 50)?.ml ?? sizes[0].ml;
@@ -1715,6 +1793,133 @@ function initProduct() {
     name: p.name, description: p.desc || p.whatItDoes || "", image: new URL(fullSrc(p.images[0]), location.href).href,
     brand: { "@type": "Brand", name: p.brand || "Aurora" },
     ...(priced ? { offers: { "@type": "AggregateOffer", priceCurrency: "BDT", lowPrice: fromPrice(p), highPrice: Math.max(...sizes.map(s => s.price)), offerCount: sizes.length } } : {})
+  });
+  document.head.appendChild(ld);
+}
+
+/* ============================================================
+   Page: Combo set — the customer builds their own set of roll-ons
+   ============================================================ */
+function initComboProduct(p, wrap) {
+  const need = p.comboCount, ml = p.comboMl;
+  const size = productSizes(p)[0];
+  const choices = comboChoices(p);
+  const groups = [["For Him", "Men"], ["For Her", "Women"], ["Unisex", "Unisex"]]
+    .map(([tag, label]) => ({ tag, label, list: choices.filter(x => x.tag === tag) }))
+    .filter(g => g.list.length);
+  const picks = [];
+  let tab = groups[0]?.tag, qty = 1;
+
+  $("#pdpCrumbs").innerHTML = `
+    <li><a href="index.html">Home</a></li>
+    <li><a href="${collUrl("perfume")}">Perfume</a></li>
+    <li><a href="${collUrl("roll-on-combo")}">Roll-On Combo Set</a></li>
+    <li><span aria-current="page">${esc(p.name)}</span></li>`;
+
+  wrap.innerHTML = `
+    <div class="gallery">
+      <div class="gallery-main"><img src="${fullSrc(p.images[0])}" alt="${esc(p.name)} — five Aurora premium roll-on perfumes" width="1600" height="901" fetchpriority="high"></div>
+    </div>
+    <div class="buybox">
+      <p class="meta-line">Roll-On Combo Set${p.badge ? ` · ${esc(p.badge)}` : ""}</p>
+      <h1>${esc(p.name)}</h1>
+      <p class="summary">${esc(p.summary || "")}</p>
+      <p class="price">${fmt(size.price)} <small class="muted" style="font-size:13px;font-weight:500">for ${need} × ${ml}ml · ${need * ml}ml in total</small></p>
+      <p class="price-note">Cash on delivery · Delivery: ${deliveryShort()}</p>
+      <div class="combo-builder">
+        <div class="opt-head">Build your set <span id="comboCount" aria-live="polite"></span></div>
+        <ol class="combo-slots" id="comboSlots"></ol>
+        <div class="combo-tabs" role="tablist" aria-label="Fragrances by category">
+          ${groups.map(g => `<button role="tab" data-tab="${g.tag}" aria-selected="${g.tag === tab}">${g.label} <span>${g.list.length}</span></button>`).join("")}
+        </div>
+        <div class="combo-choices" id="comboChoices" role="group" aria-label="Choose fragrances"></div>
+        <p class="combo-hint" id="comboHint"></p>
+      </div>
+      <div class="opt-head">Quantity</div>
+      <div class="buy-row">
+        ${qtyControl("pdp")}
+        <button class="btn" id="addBtn" disabled>Add to bag</button>
+      </div>
+      <button class="btn btn-outline btn-block" id="buyNow" disabled>Buy now</button>
+      <ul class="assurance">
+        <li>${icon("bottle")}<span><strong>${need} roll-ons, ${ml}ml each</strong>${need * ml}ml of premium roll-on perfume in total — your choice of fragrances.</span></li>
+        <li>${icon("truck")}<span><strong>Delivery across Bangladesh</strong>${ZONES.map(z => `${z.label}: ${fmt(z.fee)} · ${z.time}`).join("<br>")}</span></li>
+        <li>${icon("cash")}<span><strong>Cash on delivery</strong>Pay when your order arrives. We confirm every order by phone first.</span></li>
+        ${waConfigured() ? `<li>${icon("chat")}<span><strong>Need help choosing?</strong><a href="${waLink(`Hello AuroraBD! Can you help me choose 5 fragrances for the ${p.name}?`)}" target="_blank" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">Ask us on WhatsApp</a> — we're happy to suggest a set.</span></li>` : ""}
+      </ul>
+    </div>`;
+
+  const row = (title, content) => `<div class="detail-row" data-reveal><h2>${title}</h2><div>${content}</div></div>`;
+  $("#pdpDetails").innerHTML = [
+    row("What's inside", `<p class="prose">${esc(p.desc || "")}</p>`),
+    row("How it works", `<ol class="combo-steps">
+      <li><strong>Choose ${need} fragrances.</strong> Pick any ${need} different scents — men's, women's and unisex, in any combination.</li>
+      <li><strong>Add your set to the bag.</strong> Your chosen fragrances are saved with your order.</li>
+      <li><strong>Receive ${need} × ${ml}ml roll-ons.</strong> Delivered to your door — pay cash on delivery.</li>
+    </ol>`),
+    row("Why roll-on", `<p>Pocket-size and easy to carry, a roll-on lets you reapply your fragrance anywhere — and a set of ${need} is the easiest way to discover new favourites or create a thoughtful gift.</p>`)
+  ].join("");
+
+  const draw = () => {
+    const full = picks.length === need;
+    $("#comboCount").textContent = `${picks.length} of ${need} chosen`;
+    $("#comboSlots").innerHTML = Array.from({ length: need }, (_, i) => {
+      const f = picks[i] && bySlug(picks[i]);
+      return f
+        ? `<li class="filled"><span class="n">${i + 1}</span><strong>${esc(f.name)}</strong><button data-unpick="${i}" aria-label="Remove ${esc(f.name)}">${icon("close")}</button></li>`
+        : `<li><span class="n">${i + 1}</span><em>Choose a fragrance</em></li>`;
+    }).join("");
+    const g = groups.find(x => x.tag === tab);
+    $("#comboChoices").innerHTML = (g?.list || []).map(f => {
+      const on = picks.includes(f.slug);
+      return `<button class="combo-chip${on ? " is-on" : ""}" data-pick="${f.slug}" aria-pressed="${on}"${!on && full ? " disabled" : ""}>
+        ${on ? icon("check") : ""}<span>${esc(f.name)}<small>${esc(f.family || "")}</small></span></button>`;
+    }).join("");
+    $("#comboHint").textContent = full
+      ? "Your set is ready — add it to your bag."
+      : `Tap any ${need - picks.length} more fragrance${need - picks.length === 1 ? "" : "s"} — mix men's, women's and unisex as you like.`;
+    $("#addBtn").disabled = $("#buyNow").disabled = !full;
+    $("#pdpQty").textContent = qty;
+    $("#barPrice").textContent = full ? `${fmt(size.price)} · set ready` : `${fmt(size.price)} · ${picks.length}/${need} chosen`;
+  };
+
+  wrap.addEventListener("click", e => {
+    const t = e.target.closest("[data-pick], [data-unpick], [data-tab]");
+    if (!t) return;
+    if (t.dataset.tab) {
+      tab = t.dataset.tab;
+      $$(".combo-tabs [data-tab]", wrap).forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === tab)));
+    } else if (t.dataset.pick) {
+      const i = picks.indexOf(t.dataset.pick);
+      if (i >= 0) picks.splice(i, 1); else if (picks.length < need) picks.push(t.dataset.pick);
+    } else picks.splice(+t.dataset.unpick, 1);
+    draw();
+  });
+  $("#pdpInc").addEventListener("click", () => { qty++; draw(); });
+  $("#pdpDec").addEventListener("click", () => { if (qty > 1) qty--; draw(); });
+  const addSet = () => { if (picks.length === need) Cart.add(p.slug, size.ml, qty, [...picks]); };
+  $("#addBtn").addEventListener("click", addSet);
+  $("#buyNow").addEventListener("click", () => { if (picks.length !== need) return; addSet(); Cart.view = "checkout"; Cart.update(); });
+
+  /* Mobile buy bar: adds the set when it's ready, otherwise scrolls back to the builder */
+  const bar = $("#buyBar");
+  $("#barName").textContent = p.name;
+  $("#barAdd").addEventListener("click", () => picks.length === need ? addSet() : $(".combo-builder").scrollIntoView({ behavior: "smooth", block: "center" }));
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(([en]) => bar.classList.toggle("is-on", !en.isIntersecting && en.boundingClientRect.top < 0)).observe($("#addBtn"));
+  }
+  draw();
+
+  /* Related: roll-on favourites */
+  $("#relatedGrid").innerHTML = productGrid(collectionProducts("best-sellers").filter(isPerfume).slice(0, 4));
+  $("#relatedMore").href = collUrl("roll-on");
+
+  const ld = document.createElement("script");
+  ld.type = "application/ld+json";
+  ld.textContent = JSON.stringify({
+    "@context": "https://schema.org", "@type": "Product", name: p.name, description: p.desc || "",
+    image: new URL(fullSrc(p.images[0]), location.href).href, brand: { "@type": "Brand", name: "Aurora" },
+    offers: { "@type": "Offer", priceCurrency: "BDT", price: size.price }
   });
   document.head.appendChild(ld);
 }

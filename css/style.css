@@ -1022,3 +1022,49 @@ body { font-weight: 450; }
 .zone-field.has-error .zone-opt span { border-color: #9a3b2c; }
 .zone-field.has-error .err { display: block; }
 .ship-note span { line-height: 1.45; }
+
+/* ============================================================
+   SPRAY + ROLL-ON SIZES, ROLL-ON COMBO SET
+   ============================================================ */
+.size-picker { grid-template-columns: repeat(var(--opts, 5), minmax(0, 1fr)); }
+@media (max-width: 599px) { .size-picker { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.size-picker button small { text-align: center; line-height: 1.2; }
+
+.variant-group { font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 4px 0 8px; }
+.variant-group:not(:first-child) { margin-top: 6px; }
+.variant-grid + .variant-group { margin-top: -8px; }
+.pcard-sizes .grp { display: block; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 2px 0 5px; }
+.pcard-sizes .sizes + .grp { margin-top: 8px; }
+
+.picks { display: block; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.cart-line .v.picks { margin-top: -6px; }
+
+.combo-builder { border: 1px solid var(--line); background: var(--white); padding: 16px; margin-bottom: 22px; }
+.combo-builder .opt-head span { font-weight: 600; color: var(--wine); }
+.combo-slots { display: grid; gap: 6px; margin: 4px 0 16px; counter-reset: none; }
+.combo-slots li { display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 6px 8px 6px 6px; border: 1px dashed var(--line-strong); font-size: 14px; }
+.combo-slots li em { color: var(--taupe); font-style: normal; font-size: 13px; }
+.combo-slots li.filled { border-style: solid; border-color: var(--wine); background: var(--accent-soft); }
+.combo-slots li strong { font-weight: 600; flex: 1; min-width: 0; }
+.combo-slots .n { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line-strong); display: grid; place-items: center; font-size: 12px; font-weight: 600; flex: none; }
+.combo-slots li.filled .n { background: var(--wine); border-color: var(--wine); color: var(--on-wine); }
+.combo-slots li button { width: 30px; height: 30px; display: grid; place-items: center; color: var(--muted); flex: none; }
+.combo-slots li button:hover { color: var(--wine); }
+.combo-slots li button .icon { width: 14px; height: 14px; }
+.combo-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.combo-tabs button { flex: 1; min-height: 38px; border: 1px solid var(--line-strong); font-size: 13px; font-weight: 600; transition: all .2s var(--ease); }
+.combo-tabs button span { font-weight: 500; color: var(--muted); }
+.combo-tabs button[aria-selected="true"] { background: var(--wine); border-color: var(--wine); color: var(--on-wine); }
+.combo-tabs button[aria-selected="true"] span { color: #e6cfcc; }
+.combo-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; max-height: 300px; overflow-y: auto; padding-right: 2px; }
+.combo-chip { display: flex; align-items: center; gap: 8px; text-align: left; padding: 9px 10px; border: 1px solid var(--line); background: var(--bg); font-size: 13.5px; font-weight: 600; line-height: 1.25; transition: border-color .2s var(--ease), background .2s var(--ease); }
+.combo-chip small { display: block; font-size: 11.5px; font-weight: 500; color: var(--muted); }
+.combo-chip:hover:not([disabled]) { border-color: var(--wine); }
+.combo-chip.is-on { border-color: var(--wine); background: var(--accent-soft); color: var(--wine); }
+.combo-chip .icon { width: 15px; height: 15px; flex: none; }
+.combo-chip[disabled] { opacity: .45; cursor: not-allowed; }
+.combo-hint { font-size: 12.5px; color: var(--muted); margin-top: 10px; font-weight: 500; }
+.combo-steps { display: grid; gap: 10px; counter-reset: s; }
+.combo-steps li { counter-increment: s; display: grid; grid-template-columns: 30px 1fr; font-size: 15px; }
+.combo-steps li::before { content: counter(s); width: 24px; height: 24px; border-radius: 50%; background: var(--wine); color: var(--on-wine); font-size: 12px; font-weight: 600; display: grid; place-items: center; }
+.combo-steps strong { font-weight: 600; }

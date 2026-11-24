@@ -22,6 +22,9 @@ This is a static site with no build step. Review changes for:
   note, items, subtotal, delivery, total, payment, preorder, placed_at). Items list name, size,
   quantity and line total; totals include the delivery charge for the chosen area (AURORA.delivery: Inside Dhaka ৳70, Outside Dhaka ৳120). The bag empties only after a
   successful submission, and a failed submission shows an error instead of a confirmation.
+- **Roll-ons and combos**: roll-on prices must come from AURORA.rollOn (৳220 / ৳250 for 7ml by the
+  10ml spray tier). A combo-set bag item must carry exactly `comboCount` different, in-stock picks,
+  and the picks must appear in the WhatsApp message and the Netlify `items` field.
 - **Honest content**: no fabricated ratings, reviews, sales numbers, "authentic" or
   "free delivery" claims; empty categories must show as "Soon", never with fake products.
 - **HTML consistency**: every page uses the shared `#site-header` / `#site-footer`

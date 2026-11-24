@@ -47,7 +47,21 @@ const AURORA = {
     { ml: 30, price: 650 },
     { ml: 50, price: 850 },
     { ml: 100, price: 1700 }
-  ]
+  ],
+  /* Premium roll-on perfume — offered for every perfume alongside the spray sizes.
+     `id` keeps each roll-on size separate from a spray size of the same ml.
+     Prices follow the perfume's 10ml spray price: ৳300 perfumes / ৳350 (premium) perfumes.
+     A size priced null is not shown yet. A perfume can override with rollOnPrices: { 7: 260 }. */
+  rollOn: {
+    sizes: [
+      { ml: 7,  id: 1007 },
+      { ml: 15, id: 1015 }
+    ],
+    prices: {
+      300: { 7: 220, 15: 400 },
+      350: { 7: 250, 15: 450 }
+    }
+  }
 };
 
 /* tag: "For Him" | "For Her" | "Unisex"
@@ -491,6 +505,22 @@ const PRODUCTS = [
     base: ["Musk"],
     prices: PREMIUM_PRICES,
     images: ["miss-dior"]
+  },
+
+  /* ================= COMBO SETS =================
+     category: "combo" — the customer picks `comboCount` different perfumes, each as a
+     `comboMl`ml roll-on. Out-of-stock perfumes can't be picked. */
+  {
+    slug: "premium-roll-on-combo-set",
+    name: "Premium Roll-On Perfume Combo Set",
+    category: "combo",
+    badge: "New",
+    comboCount: 5,
+    comboMl: 7,
+    variants: [{ ml: 35, label: "5 × 7ml (35ml)", price: 1000 }],
+    summary: "Create your own set of five premium roll-on perfumes — any five fragrances you love, 7ml each.",
+    desc: "Five premium roll-on perfumes of your choice — 7ml each, 35ml in total — for just ৳1,000. Mix men's, women's and unisex fragrances in any combination to build a set that's completely yours.",
+    images: ["premium-roll-on-combo-set"]
   },
 
   /* ================= SKINCARE =================
@@ -951,6 +981,7 @@ const PRODUCTS = [
 /* Curated order for "Featured" — the homepage Featured Perfumes tabs
    and the Featured collection */
 const FEATURED_SLUGS = [
+  "premium-roll-on-combo-set",
   "creed-aventus", "good-girl", "hawas-ice", "lattafa-khamrah",
   "cloud", "club-de-nuit-intense", "vampire-blood", "bleu-de-chanel"
 ];

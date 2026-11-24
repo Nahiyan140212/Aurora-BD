@@ -72,6 +72,14 @@ products list `skinTypes` / `concerns`.
 Default sizes: 10ml ৳300 · 15ml ৳400 · 30ml ৳650 · 50ml ৳850 · 100ml ৳1,700.
 Premium: ৳350 · ৳450 · ৳750 · ৳1,000 · ৳1,800.
 
+**Premium roll-on** sizes are set in `AURORA.rollOn` and offered for every perfume next to the
+spray sizes. Prices follow the perfume's 10ml spray price: ৳220 (7ml) for ৳300 perfumes, ৳250 (7ml)
+for ৳350 perfumes. 15ml roll-on: ৳400 / ৳450. A roll-on size priced `null` isn't shown until it has a price.
+
+**Combo sets** use `category: "combo"` with `comboCount` and `comboMl` — the Premium Roll-On
+Perfume Combo Set lets the customer pick any 5 different in-stock perfumes as 7ml roll-ons for
+৳1,000; the picks are saved with the bag item and included in the order.
+
 **Delivery** (cash on delivery) is set in `AURORA.delivery`: Inside Dhaka ৳70 (1–2 days),
 Outside Dhaka ৳120 (2–4 days). The customer picks their area at checkout.
 
