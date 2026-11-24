@@ -1202,6 +1202,21 @@ function initHome() {
   initScentFinder();
   initRoutine();
   initPreorderBand();
+  initComboSpotlight();
+}
+
+/* Homepage combo highlights read their numbers from the combo product, so they stay in sync */
+function initComboSpotlight() {
+  const combo = PRODUCTS.find(isCombo);
+  if (!combo || !hasPrice(combo)) {
+    $(".combo-spot")?.remove();
+    return;
+  }
+  const set = (sel, text) => $$(sel).forEach(el => { el.textContent = text; });
+  set("[data-combo-price]", fmt(fromPrice(combo)));
+  set("[data-combo-count]", String(combo.comboCount));
+  set("[data-combo-ml]", `${combo.comboMl}ml`);
+  set("[data-combo-total]", `${combo.comboCount * combo.comboMl}ml`);
 }
 
 /* Skincare pre-order band with countdown — hidden once the offer ends */

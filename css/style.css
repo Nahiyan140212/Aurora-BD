@@ -1068,3 +1068,37 @@ body { font-weight: 450; }
 .combo-steps li { counter-increment: s; display: grid; grid-template-columns: 30px 1fr; font-size: 15px; }
 .combo-steps li::before { content: counter(s); width: 24px; height: 24px; border-radius: 50%; background: var(--wine); color: var(--on-wine); font-size: 12px; font-weight: 600; display: grid; place-items: center; }
 .combo-steps strong { font-weight: 600; }
+
+/* ============================================================
+   HOMEPAGE — ROLL-ON COMBO HIGHLIGHT
+   ============================================================ */
+/* Hero slide with one wide image instead of a pair */
+.hero-media.single { grid-template-columns: 1fr; }
+.hero-media.single .hero-tile { aspect-ratio: 16 / 9; }
+.hero-media.single .hero-tile:nth-child(2) { margin-top: 0; }
+@media (min-width: 900px) { .hero-media.single { padding-top: 64px; padding-bottom: 88px; } }
+
+.combo-spot { background: #1d1716; color: #f3e6d6; }
+.combo-spot-inner { display: grid; gap: 28px; align-items: center; padding-top: 44px; padding-bottom: 48px; }
+@media (min-width: 960px) { .combo-spot-inner { grid-template-columns: 7fr 5fr; gap: 56px; padding-top: 64px; padding-bottom: 64px; } }
+.combo-spot-media { position: relative; display: block; overflow: hidden; aspect-ratio: 16 / 9; border: 1px solid rgba(201, 162, 94, .35); }
+.combo-spot-media img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--ease); }
+.combo-spot-media:hover img { transform: scale(1.03); }
+.combo-spot-badge { position: absolute; top: 14px; left: 14px; background: #c9a25e; color: #1d1716; font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; padding: 6px 12px; }
+.combo-spot .eyebrow { color: #c9a25e; }
+.combo-spot .h2 { color: #f6ead8; }
+.combo-spot .h2 em { color: #c9a25e; }
+.combo-spot .lede { color: #d8c8b4; margin: 12px 0 22px; }
+.combo-spot-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid rgba(201, 162, 94, .3); border-bottom: 1px solid rgba(201, 162, 94, .3); margin-bottom: 20px; }
+.combo-spot-facts li { padding: 14px 10px 14px 0; }
+.combo-spot-facts li + li { padding-left: 14px; border-left: 1px solid rgba(201, 162, 94, .3); }
+.combo-spot-facts strong { display: block; font-family: var(--serif); font-size: clamp(1.5rem, 2.6vw, 2rem); font-weight: 600; color: #c9a25e; line-height: 1.1; font-variant-numeric: lining-nums; }
+.combo-spot-facts span { font-size: 12.5px; color: #cbb9a3; font-weight: 500; }
+.combo-spot-price { font-size: 15px; color: #d8c8b4; margin-bottom: 22px; font-weight: 500; }
+.combo-spot-price strong { font-family: var(--serif); font-size: clamp(1.8rem, 3vw, 2.4rem); color: #f6ead8; font-weight: 600; margin: 0 4px; font-variant-numeric: lining-nums; }
+.combo-spot-ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; }
+.combo-spot .btn-light { background: #c9a25e; border-color: #c9a25e; color: #1d1716; }
+.combo-spot .btn-light:hover { background: transparent; color: #c9a25e; }
+.combo-spot .link { color: #f3e6d6; border-color: rgba(243, 230, 214, .4); }
+.combo-spot .link:hover { color: #c9a25e; border-color: #c9a25e; }
+.hero-media.single .tag { display: none; }   /* the combo photo already names the product */
