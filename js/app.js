@@ -81,7 +81,7 @@ const showSale = () => saleActive() && AURORA.skincareSale.showDiscount !== fals
 /* Pre-order price wins while the pre-order runs; otherwise the skincare sale applies */
 const withDiscount = (s, p) => {
   const pre = preorderActive() && typeof s.preorderPrice === "number";
-  const sale = !pre && typeof s.price === "number" && isSkincare(p) && !isComingSoon(p) && saleActive();
+  const sale = !pre && typeof s.price === "number" && isSkincare(p) && !isComingSoon(p) && !p.noSale && saleActive();
   const price = pre ? s.preorderPrice : sale ? Math.round(s.price * (100 - salePct()) / 100) : s.price;
   return { ml: s.ml, label: s.label, format: s.format || null, regular: s.price, price, preorder: pre, sale, discounted: pre || (sale && showSale()) };
 };

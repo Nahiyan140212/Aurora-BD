@@ -85,6 +85,7 @@ const AURORA = {
    price:        regular price, or null to show "Price on request"
    preorderPrice: price while AURORA.preorder is running (optional)
    comingSoon:   true to list a product as "Coming soon" (no price, not orderable)
+   noSale:       true — the price is final; AURORA.skincareSale is not applied to it
    outOfStock:   true to show a product as "Out of stock" (not orderable until removed)
    skincareType: a key from SKINCARE_CATEGORIES (e.g. "serum"), or a list
    summary:      optional one-line intro under the product name
@@ -569,8 +570,11 @@ const PRODUCTS = [
     brand: "The Face Shop",
     category: "skincare",
     skincareType: "cleanser",
-    size: "150ml",
-    price: 1300,
+    variants: [
+      { ml: 100, label: "100ml", price: 740 },
+      { ml: 150, label: "150ml", price: 1020 }
+    ],
+    noSale: true,
     badge: null,
     whatItDoes: "A foaming cleanser that deeply cleans away dust, excess oil and makeup. Rice water helps keep skin bright and fresh with a natural glow, and it cleans without dryness, leaving skin soft and smooth. Suitable for everyday use.",
     keyIngredients: ["Rice Water"],
@@ -623,7 +627,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "serum",
     size: "50ml",
-    price: 1600,
+    price: 1230,
+    noSale: true,
     badge: null,
     whatItDoes: "A glow serum with 5% niacinamide, squalane and rice extract. It helps reduce dark spots and pigmentation, brightens and evens skin tone, keeps skin hydrated and soft, refines texture and helps protect skin from environmental damage.",
     keyIngredients: ["Niacinamide 5%", "Squalane", "Rice Extract"],
@@ -640,9 +645,10 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "serum",
     variants: [
-      { ml: 30, label: "30ml", price: 700 },
-      { ml: 100, label: "100ml", price: 1850 }
+      { ml: 30, label: "30ml", price: 560 },
+      { ml: 100, label: "100ml", price: 1400 }
     ],
+    noSale: true,
     badge: null,
     whatItDoes: "A lightweight essence made with 96% snail secretion filtrate. It deeply hydrates and locks in moisture, helps repair damaged skin, improves skin texture and elasticity, and gives a healthy, natural glow.",
     keyIngredients: ["Snail Secretion Filtrate 96%"],
@@ -692,7 +698,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "serum",
     size: "40ml",
-    price: 1800,
+    price: 1250,
+    noSale: true,
     badge: null,
     whatItDoes: "A niacinamide serum for clearer pores and smoother skin. It helps minimize the look of enlarged pores, controls excess oiliness, improves skin texture and helps reduce breakouts, leaving skin smoother and clearer.",
     keyIngredients: ["Niacinamide"],
@@ -709,7 +716,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "moisturizer",
     size: "100g",
-    price: 1850,
+    price: 1450,
+    noSale: true,
     badge: null,
     whatItDoes: "An all-in-one cream with 92% snail secretion filtrate. It deeply hydrates and nourishes, helps repair damaged skin, improves skin texture and elasticity, and gives a healthy, natural glow.",
     keyIngredients: ["Snail Secretion Filtrate 92%"],
@@ -724,9 +732,10 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "moisturizer",
     variants: [
-      { ml: 15, label: "15ml", price: 1100 },
-      { ml: 50, label: "50ml", price: 2250 }
+      { ml: 15, label: "15ml", price: 840 },
+      { ml: 50, label: "50ml", price: 1680 }
     ],
+    noSale: true,
     badge: null,
     whatItDoes: "A relief cream that soothes irritated and sensitive skin, helps repair a damaged skin barrier, deeply hydrates and locks in moisture, and strengthens skin for a healthier, smoother look.",
     howToUse: "Apply an even layer as the last step of your routine, morning and evening.",
@@ -741,7 +750,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "moisturizer",
     size: "50ml",
-    price: 1700,
+    price: 1260,
+    noSale: true,
     badge: null,
     whatItDoes: "A moisturizing cream with rice and ceramide. It deeply moisturizes, strengthens the skin's natural barrier, helps reduce dryness and roughness, and keeps skin soft and smooth.",
     keyIngredients: ["Rice", "Ceramide"],
@@ -771,7 +781,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: ["moisturizer", "eye-care"],
     size: "30ml",
-    price: 1750,
+    price: 1260,
+    noSale: true,
     badge: null,
     summary: "A face and eye moisturizer with vitamin C.",
     whatItDoes: "A face and eye moisturizer with a vitamin C complex and glutathione. It helps brighten skin and boost glow, reduces the look of dark spots and uneven tone, deeply hydrates, keeps skin smooth and soft, and gives antioxidant support to help protect skin from environmental damage.",
@@ -791,7 +802,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "sunscreen",
     size: "50ml",
-    price: 1800,
+    price: 1280,
+    noSale: true,
     badge: null,
     whatItDoes: "A lightweight SPF50+ PA++++ sunscreen with rice extract and panthenol (vitamin B5). It gives long-lasting UVA and UVB protection, hydrates and softens, strengthens the skin barrier, and has a light, non-sticky finish that absorbs quickly.",
     keyIngredients: ["Rice Extract", "Panthenol (Vitamin B5)"],
@@ -808,7 +820,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "sunscreen",
     size: "50ml",
-    price: 1900,
+    price: 1280,
+    noSale: true,
     badge: null,
     whatItDoes: "An SPF50+ PA++++ sunscreen with rice and probiotics. It gives long-lasting UVA and UVB protection, deeply hydrates and softens, calms and nourishes, and has a light, non-sticky, creamy finish suited to everyday use.",
     keyIngredients: ["Rice", "Probiotics"],
@@ -825,7 +838,8 @@ const PRODUCTS = [
     category: "skincare",
     skincareType: "sunscreen",
     size: "70ml",
-    price: 1500,
+    price: 1150,
+    noSale: true,
     badge: null,
     whatItDoes: "An SPF50+ PA+++ sun milk that protects against UVA and UVB rays, gives skin a smooth, soft finish, and has a lightweight, non-greasy formula that sits easily under makeup.",
     howToUse: "Shake well. Apply generously as the last step of your morning routine, 15 minutes before going out. Reapply every 2 hours in the sun.",
