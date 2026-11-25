@@ -32,6 +32,7 @@ const AURORA = {
   skincareSale: {
     percent: 20,
     endsAt: null,
+    showDiscount: false,      /* true shows the regular price struck through and "−20%" */
     note: "The discount applies to skincare only."
   },
   /* Social profile links — fill in to show icons in the footer.

@@ -76,12 +76,14 @@ const saleActive = () => {
   return !!sale && sale.percent > 0 && (!sale.endsAt || Date.now() <= new Date(sale.endsAt).getTime());
 };
 const salePct = () => (saleActive() ? AURORA.skincareSale.percent : 0);
+/* showDiscount: false — charge the sale price but show it as the plain price (no strike-through, no % tag) */
+const showSale = () => saleActive() && AURORA.skincareSale.showDiscount !== false;
 /* Pre-order price wins while the pre-order runs; otherwise the skincare sale applies */
 const withDiscount = (s, p) => {
   const pre = preorderActive() && typeof s.preorderPrice === "number";
   const sale = !pre && typeof s.price === "number" && isSkincare(p) && !isComingSoon(p) && saleActive();
   const price = pre ? s.preorderPrice : sale ? Math.round(s.price * (100 - salePct()) / 100) : s.price;
-  return { ml: s.ml, label: s.label, format: s.format || null, regular: s.price, price, preorder: pre, sale, discounted: pre || sale };
+  return { ml: s.ml, label: s.label, format: s.format || null, regular: s.price, price, preorder: pre, sale, discounted: pre || (sale && showSale()) };
 };
 /* Premium roll-on sizes for a perfume (AURORA.rollOn). Each size has a numeric `id` (e.g. 1007)
    so it never clashes with a spray size of the same ml; its price follows the perfume's
@@ -794,7 +796,7 @@ const Cart = {
 
   orderText(c, id) {
     const items = this.items();
-    const lines = items.map(i => `• ${bySlug(i.slug).name}${sizeLabel(i.slug, i.size) ? ` — ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk${isPreorder(bySlug(i.slug)) ? " (pre-order)" : isOnSale(bySlug(i.slug)) ? ` (${salePct()}% off)` : ""}${i.picks ? `\n   Fragrances: ${pickNames(i)}` : ""}`);
+    const lines = items.map(i => `• ${bySlug(i.slug).name}${sizeLabel(i.slug, i.size) ? ` — ${sizeLabel(i.slug, i.size)}` : ""} × ${i.qty} = ${sizePrice(i.slug, i.size) * i.qty} Tk${isPreorder(bySlug(i.slug)) ? " (pre-order)" : isOnSale(bySlug(i.slug)) && showSale() ? ` (${salePct()}% off)` : ""}${i.picks ? `\n   Fragrances: ${pickNames(i)}` : ""}`);
     const pre = items.some(i => isPreorder(bySlug(i.slug)));
     return [
       "Hello AuroraBD! I would like to place an order:",
@@ -1762,7 +1764,7 @@ function initProduct() {
     const note = $("#pdpPreorder");
     if (note) note.innerHTML = cur.preorder
       ? `<strong>Pre-order price — ${discountPct(cur)}% off</strong> until ${preorderEnds()}. Regular price ${fmt(cur.regular)}. ${esc(AURORA.preorder.note || "")}`
-      : cur.sale ? `<strong>${discountPct(cur)}% off all skincare.</strong> Regular price ${fmt(cur.regular)}. ${esc(AURORA.skincareSale.note || "")}` : "";
+      : cur.sale && showSale() ? `<strong>${discountPct(cur)}% off all skincare.</strong> Regular price ${fmt(cur.regular)}. ${esc(AURORA.skincareSale.note || "")}` : "";
     $("#pdpQty").textContent = qty;
     $("#barPrice").textContent = [sizeLabel(p.slug, size), fmt(each)].filter(Boolean).join(" · ");
   };
