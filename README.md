@@ -69,7 +69,7 @@ products list `skinTypes` / `concerns`.
 **Images:** add `images/products/full/<slug>.jpg` (≈1600×1066) and
 `images/products/thumb/<slug>.jpg` (720×480). Cards crop to a centred square. Skincare photos are square: full ≈1254×1254, thumb 720×720.
 
-Default sizes: 10ml ৳300 · 15ml ৳400 · 30ml ৳650 · 50ml ৳850 · 100ml ৳1,700.
+Default sizes: 10ml ৳300 · 15ml ৳400 · 30ml ৳650 · 50ml ৳900 · 100ml ৳1,700.
 Premium: ৳350 · ৳450 · ৳750 · ৳1,000 · ৳1,800.
 
 **Premium roll-on** sizes are set in `AURORA.rollOn` and offered for every perfume next to the

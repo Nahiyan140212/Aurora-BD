@@ -46,7 +46,7 @@ const AURORA = {
     { ml: 10, price: 300 },
     { ml: 15, price: 400 },
     { ml: 30, price: 650 },
-    { ml: 50, price: 850 },
+    { ml: 50, price: 900 },
     { ml: 100, price: 1700 }
   ],
   /* Premium roll-on perfume — offered for every perfume alongside the spray sizes.
