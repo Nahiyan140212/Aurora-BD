@@ -246,7 +246,6 @@ const PRODUCTS = [
     top: ["Pink Pepper", "Juniper", "Violet"],
     heart: ["Cinnamon", "Lavender", "Sage"],
     base: ["Vanilla", "Tonka Bean", "Amber", "Suede"],
-    prices: PREMIUM_PRICES,
     images: ["stronger-with-you-intensely"]
   },
   {
@@ -418,7 +417,6 @@ const PRODUCTS = [
     top: ["Cream", "Coconut", "Praline"],
     heart: ["Musk", "Lavender", "Pear"],
     base: ["Vanilla", "Musk", "Amber"],
-    prices: PREMIUM_PRICES,
     images: ["cloud"]
   },
   {
@@ -456,7 +454,6 @@ const PRODUCTS = [
     top: ["Pear", "Melon", "Magnolia", "Peach"],
     heart: ["Jasmine", "Damask Rose", "Ylang-Ylang"],
     base: ["Musk", "Vanilla", "Cedar"],
-    prices: PREMIUM_PRICES,
     images: ["dior-jadore"]
   },
   {
